@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Каталог{% endblock %}
+
+{% block content %} 
+<h1 class="h1">Каталог</h1>
+
+<div class="products-container">
+  {% for image in product_images %}
+  <div class="card-wrapper">
+    <!-- Фото -->
+    <div class="image-holder">
+      <div class="image-liquid">
+        <img src="{{ image.image.url }}" alt="{{ image.product.name }}">
+      </div>
+      <div class="plus-overlay">
+        <!-- Форма добавления в корзину -->
+        <form method="post" action="{% url 'add_to_cart' %}" class="add-to-cart-form">
+          {% csrf_token %}
+          <input type="hidden" name="product_id" value="{{ image.product.id }}">
+          
+          <!-- Скрытые поля для выбранных атрибутов (можно сделать выпадающими) -->
+          <input type="hidden" name="color" value="{{ image.product.color.first.id }}">
+          <input type="hidden" name="size" value="{{ image.product.size.first.id }}">
+          <input type="hidden" name="quantity" value="1">
+          
+          <button type="submit" class="plus-circle">
+            <i class="fa-solid fa-basket-shopping fa"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Описание -->
+    <div class="product-description">
+      <h5 class="product-title">{{ image.product.name }}</h5>
+      <div class="row">
+        <div class="col-xs-12 col-sm-8 category">{{ image.product.description|truncatechars:50 }}</div>
+        <div class="col-xs-12 col-sm-4 price">{{ image.product.price }}₽</div>
+      </div>
+      
+      <!-- Доп. детали - скрытые по умолчанию -->
+      <div class="extra-details">
+        <div class="sizes-wrapper">
+          <p>Размеры</p>
+          {% for size in image.product.size.all %}
+          <span>{{ size.name }}</span>
+          {% endfor %}
+        </div>
+        
+        <div class="colors-wrapper">
+          <p>Цвета</p>
+          <div class="color-list">
+            {% for color in image.product.color.all %}
+            <span class="color-sample" style="background-color: {{ color.hex_code }};" 
+                  title="{{ color.name }}" data-color-id="{{ color.id }}"></span>
+            {% endfor %}
+          </div>
+        </div>
+        
+        <!-- Альтернативная форма с выбором атрибутов 
+        <form method="post" action="{% url 'add_to_cart' %}" class="detailed-add-form">
+          {% csrf_token %}
+          <input type="hidden" name="product_id" value="{{ image.product.id }}">
+          
+          <div class="form-group">
+            <select name="size" class="form-control">
+              {% for size in image.product.size.all %}
+              <option value="{{ size.id }}">{{ size.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <select name="color" class="form-control">
+              {% for color in image.product.color.all %}
+              <option value="{{ color.id }}">{{ color.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <input type="number" name="quantity" value="1" min="1" class="form-control">
+          </div>
+          
+          <button type="submit" class="btn btn-primary">Добавить в корзину</button>
+        </form>-->
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<style>
+  .extra-details {
+    display: none;
+    margin-top: 10px;
+  }
+  
+  .card-wrapper:hover .extra-details {
+    display: block;
+  }
+  
+  .color-sample {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 5px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+  }
+  
+  .add-to-cart-form {
+    display: inline;
+  }
+  
+  .detailed-add-form {
+    margin-top: 10px;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Обработка выбора цвета
+  document.querySelectorAll('.color-sample').forEach(color => {
+    color.addEventListener('click', function() {
+      const colorId = this.getAttribute('data-color-id');
+      const form = this.closest('.card-wrapper').querySelector('.add-to-cart-form');
+      form.querySelector('input[name="color"]').value = colorId;
+    });
+  });
+  
+  // AJAX отправка формы
+  document.querySelectorAll('.add-to-cart-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      fetch(this.action, {
+        method: 'POST',
+        body: new FormData(this),
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Обновляем счетчик корзины
+          document.querySelector('.cart-count').textContent = data.total_items;
+          // Показываем уведомление
+          alert('Товар добавлен в корзину');
+        }
+      });
+    });
+  });
+});
+</script>
+{% endblock %}

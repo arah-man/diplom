@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{%load static%}
+
+{% block title %} Главная страница {% endblock %}
+
+{% block content %} 
+
+<div class="offer">
+    <div class="header_nazvanie">
+        <h2 class="header_logo"> Heart of Style</h2>
+        <div class="header_devis">
+            <p>выбирай</p>
+            <p>сочетай</p>
+            <p>сияй</p>
+        </div>
+        <a href="catalog.html" class="btn">
+            <p class="text_btn">К покупкам!</p>
+        </a>
+    </div>
+</div>
+<main>
+    <section class="section">
+        <!-- CATALOG -->
+        <h1 class="h1">
+            Наши юбки
+        </h1>
+
+        <div class="row row-cols-1 row-cols-md-2 g-4 catalog ">
+            {% for image in products %}
+            <a href="#">
+                <div class="col">
+                    <div class="card card__image-wrapper">
+                        <img src="{{image.image.url}}" class="card-img-top card_image" alt="...">
+                        <div class="card-body card__text">
+                            <h5 class="card-title ubka_nazvanie dop-text">{{ image.product.name }}</h5>
+                            <p class="card-text card__text-description">{{ image.product.description }}</p>
+                            <div class="sail">
+                            <p class="card__text-price">{{ image.product.price }}₽</p>
+                                <div class="card_sail">
+                                    <span class="fa-solid fa-heart" href="#"></span>
+                                    <span class="fa-solid fa-basket-shopping" href="#"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {%endfor%}
+        </div>
+
+            
+
+        <div class="news">
+            <h1>Главные Новости</h1>
+            <div class="content-block">
+                <div class="text-content">
+                    <h2>Как носить кожаную одежду весной 2024 года</h2>
+                    <p>Кожаная одежда — уже давно не просто тренд. Вещи из этого материала закрепились 
+                        в гардеробах модниц в статусе классики. Из года в год дизайнеры наполняют 
+                        свои коллекции самыми разнообразными вещами из кожи: от плащей и жакетов до 
+                        брюк, юбок и даже платьев. Впрочем, трендовые модели, а также актуальные способы 
+                        интегрировать их в образы меняются каждый сезон. Особой популярностью в грядущем 
+                        сезоне пользуется цветная кожа. Классические оттенки, вроде черного и коричневого, 
+                        наскучили дизайнерам. В 2024 году мы будем носить одежду из кожи всех цветов радуги: 
+                        элегантный плащ небесно-голубого оттенка, платье мятного 
+                        цвета с эффектным декоративным узлом, или юбку в благородном 
+                        оттенке сливочного маслa. Некоторые дизайнеры предлагают одеваться 
+                        в цветную кожу с головы до ног: это может быть эффектный монохромный ансамбль 
+                        изумрудного цвета, или комбо из лакированного жакета 
+                        винного оттенка и микрошортов бежевого цвета. </p>
+                    <a href="#" class="btn">
+                        <p class="text_btn">
+                            Подробнее
+                        </p>
+                    </a>
+                </div>
+                
+                <div class="image-content">
+                    <img src="{%static 'img/news1111/news3.jpeg'%}" alt="Пример изображения">
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

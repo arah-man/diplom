@@ -1,0 +1,202 @@
+.offer {
+	background: url(../img/background.jpg) no-repeat center /cover;
+	height: 100%;
+}
+
+.header_nazvanie {
+	padding-top: 300px;
+	text-align: right;
+	padding-right: 70px;
+	font-family:var(--main-font);
+}
+
+.header_logo{
+	font-size: 35px;
+}
+
+.header_devis {
+	display: flex;
+	justify-content: right;
+}
+
+.header_devis P {
+	margin-right: 15px;
+	font-size: 17px;
+}
+
+.btn{
+	display: block;
+	font-size: 17px;
+	text-align: center;
+	letter-spacing: 0.1em;
+	padding: 17px 47px;
+	width: 238px;
+	border: 1px solid black;
+}
+
+.text_btn{
+	transition: transform 0.1s;
+}
+
+.text_btn:hover{
+	transform: scale(1.2)
+}
+
+.section {
+	box-shadow: 0 0 25px black;
+}
+
+.nashi_ubki {
+	text-align: center;
+	padding-top: 25px;
+	padding-bottom: 25px;
+}
+
+.catalog {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 30px;
+	padding: 0 50px;
+	margin-left: 70px;
+	margin-right: 70px;
+}
+
+.card {
+	height: 600px;
+	width: 400px;
+	display: grid;
+	align-content: space-evenly;
+    justify-items: center;
+	transition: box-shadow .3s;
+}
+
+.card:hover{
+	box-shadow: 0 0 10px grey;
+}
+
+.card_image {
+	width: 300px;
+	height: 400px;
+	object-fit: cover;
+}
+
+.ubka_nazvanie{
+	text-align: center;
+	font-family: var(--main-font);
+}
+
+.card__text-description {
+	padding-top: 5px;
+	padding-left: 20px;
+	padding-right: 20px;
+	text-align: justify;
+}
+
+.sail {
+	display: flex;
+	padding-top: 10px;
+	font-size: 20px;
+	justify-content: space-around;
+}
+
+.sail a {
+	padding-right: 5px;
+	padding-left: 5px;
+}
+
+.fa-heart.fa-solid:hover {
+	color: palevioletred;
+}
+
+.fa-heart.fa-solid:focus{
+	color: red;
+}
+
+.glav_novosti {
+	text-align: center;
+	margin-top: 40px;
+	margin-bottom: 20px;
+}
+
+.spisok_novosti {
+	display: flex;
+}
+
+.novost {
+	text-align: center;
+	margin-top: 30px;
+	margin-left: 80px;
+	font-family: var(--main-font);
+}
+
+.textt {
+	font-size: 20px;
+	margin-left: 140px;
+	margin-right: 70px;
+	text-align: justify;
+	margin-top: 20px;
+	line-height: 30px
+}
+
+.photo_novost {
+	width: 400px;
+	margin-top: 25px;
+	margin-right: 151px;
+}
+
+.btnn {
+	display: block;
+	font-size: 17px;
+	text-align: center;
+	letter-spacing: 0.1em;
+	padding: 17px 47px;
+	width: 238px;
+	border: 1px solid black;
+	margin-left: auto;	
+	margin-top: 40px;
+	margin-right: 70px;
+}
+
+.footer {
+	background-color: var(--main-color);
+	height: auto;
+}
+
+.footer_nazvanie {
+	padding-top: 120px;
+	font-size: 40px;
+	text-align: center;
+	font-family: var(--main-font);
+}
+
+.footer_devis {
+	font-size: 30px;
+	display: flex;
+	justify-content: center;
+}
+
+.footer_devis p {
+	margin-right: 35px;
+}
+
+.footer_sozi{
+	font-size: 70px;
+	padding-top: 100px;
+	display: flex;
+	justify-content: end;
+	padding-right: 50px;
+	padding-bottom: 30px;
+}
+
+.footer_sozi a{
+	margin-left: 20px;
+	margin-right: 20px;
+}
+
+.fa-brands{
+	transition: transform 0.2s;
+}
+
+.fa-brands:hover{
+	transform: scale(1.4)
+}

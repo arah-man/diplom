@@ -1,0 +1,4 @@
+вход
+логин: admin
+пароль: password
+email: admin@rr.rr

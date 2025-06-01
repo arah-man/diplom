@@ -1,0 +1,72 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+    <head>        
+        <link rel="stylesheet" href="{%static 'my_css/font_awesome.css'%}">
+        <link rel="stylesheet" href="{%static 'bootstrap.min.css'%}">
+        <link rel="stylesheet" href="{% static 'my_css/style.css' %}">
+
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %} {% endblock %}</title>
+    </head>
+    <body class="d-flex flex-column min-vh-100">
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+                <img src="{%static 'img/logo.png'%}" alt="" class="logo">
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="{% url "index" %}">Главная</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="{% url "catalog" %}">Каталог</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Новости</a>
+                        </li>
+                    </ul>
+
+                    <form class="d-flex" role="search">
+                        {% if not user.is_authenticated %}
+                            <!--вход-->
+                            <a class="fa-solid fa-right-to-bracket fa active" href="{% url "login" %}"></a>
+                        {% else %}
+                            <!--выход-->
+                            <a class="fa-solid fa-right-from-bracket fa active" href="{% url "logout" %}"></a>
+                            {% if user.is_superuser %}  
+                                <!--админка-->       
+                                <a class="fa-solid fa-user-tie fa active" href="{% url "order_list" %}"></a>
+                            {% else %}
+                                <!--избранное-->       
+                                <a class="fa-regular fa-heart fa active" href="#"></a>
+                                <!--корзина-->
+                                <a class="fa-solid fa-basket-shopping fa active" href="№"></a>
+                                <!--личный кабинет-->           
+                                <a class="fa-solid fa-user fa active" href="registration.html"></a>
+                            {% endif %}
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container flex-grow-1 ">
+        {% block content %} {% endblock %}
+        </div>
+
+        <footer class=" text-center py-3 ">
+           <div class="footer center">
+                <a href="#" class="me-3 fa-solid fa-phone fa active"></a>
+                <a href="#" class="me-3 fa-brands fa-vk fa active"></a>
+                <a href="#" class="me-3 fa-brands fa-square-instagram fa active"></a>
+                <a href="#" class="me-3 fa-brands fa-square-whatsapp fa active"></a>
+           </div>
+
+            <form>
+                <input type="email" placeholder="Введите ваш email">
+                <button type="submit">Подписаться</button>
+            </form>
+        </footer>
+    </body>
+</html>

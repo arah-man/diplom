@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{%load static%}
+
+{% block title %} Главная страница {% endblock %}
+
+{% block content %} 
+
+
+<!-- П panel -->
+<div class="admin-panel">
+    <div class="nav">
+        <a href="#orders">Список заказов</a>
+        <a href="#products">Список товаров</a>
+        <a href="profile">Профиль</a>
+    </div>
+    
+    <!-- Search -->
+    <div class="search-box">
+        <input type="text" placeholder="Искать...">
+    </div>
+
+    <!-- User Profile -->
+    <div class="user-profile">
+        <h2>Ваш профиль</h2>
+        <p> im@domain.com</p>
+    </div>
+</div>
+
+<!-- 第一页: 订单列表和编辑 -->
+<div class="orders-page">
+    <h1>Список заказов</h1>
+    
+    <!-- 订单表 -->
+    <table class="order-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer Name</th>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="ordersTableBody">
+            <!-- Ожидается, что тут будет обработка данных -->
+        </tbody>
+    </table>
+
+    <!-- Поля для редактирования -->
+    <form id="orderForm" class="hidden" action="">
+        <div class="mb-3">
+            <input type="text" placeholder="Order ID" value="">
+        </div>
+        
+        <div class="mb-3">
+            <select>Choose Customer</select>
+            <option value="">All Customers</option>
+        </div>
+
+        <!-- Поля заказа -->
+    </form>
+</div>
+
+<!-- 第二页: Товары и редактирование -->
+<div class="products-page">
+    <h1>Список товаров</h1>
+    
+    <!-- Товары в списке -->
+    <div id="productCardsContainer">
+        <!-- Каждый товар будет отображаться как карточка -->
+    </div>
+
+    <!-- Добавить новый товар -->
+    <form id="newProductForm" class="hidden" action="">
+        <div class="mb-3">
+            <input type="text" placeholder="Название товара" value="">
+        </div>
+        
+        <div class="mb-3">
+            <input type="number" placeholder="Стоимость" value="">
+        </div>
+        
+        <!-- Кнопка для добавления -->
+    </form>
+
+    <!-- Добавить товар в корзину (если нужно) -->
+    <button onclick="addNewItem()" class="btn btn-primary">Добавить товар</button>
+</div>
+
+<!-- JavaScript для редактирования товаров -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Пример: открыть форму редактирования для конкретного заказа
+    document.getElementById('editOrderForm').style.display = 'block';
+});
+</script>
+
+{% endblock %}
