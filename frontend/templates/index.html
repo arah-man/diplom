@@ -27,6 +27,40 @@
 
 
         <div class="row row-cols-1 row-cols-md-2 g-4 catalog">
+    {% for image in products %}
+    <div class="col">
+        <div class="card card__image-wrapper">
+            <a href="{{ image.product.get_absolute_url }}">
+                <img src="{{image.image.url}}" class="card-img-top card_image" alt="{{ image.product.name }}">
+            </a>
+            <div class="card-body card__text">
+                <h5 class="card-title ubka_nazvanie dop-text">
+                    <a href="{{ image.product.get_absolute_url }}">{{ image.product.name }}</a>
+                </h5>
+                <p class="card-text card__text-description">{{ image.product.description }}</p>
+                <div class="sail">
+                    <p class="card__text-price">{{ image.product.price }}₽</p>
+                    <div class="card_sail">
+                        <span class="fa-solid fa-heart" href="#"></span>
+                        
+                        <!-- Заменяем форму на ссылку с обработкой через JavaScript -->
+                        <a href="#" class="add-to-cart-link" 
+                           data-product-id="{{ image.product.id }}"
+                           {% if image.color %}data-color-id="{{ image.color.id }}"{% endif %}>
+                            <span class="fa-solid fa-basket-shopping"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+
+
+        <div class="row row-cols-1 row-cols-md-2 g-4 catalog">
             {% for image in products %}
                 <div class="col">
                     <div class="card card__image-wrapper">
@@ -152,42 +186,40 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const forms = document.querySelectorAll('.add-to-cart-form');
-    
-    forms.forEach(form => {
-        form.addEventListener('submit', async function(e) {
+    document.querySelectorAll('.add-to-cart-link').forEach(link => {
+        link.addEventListener('click', function(e) {
             e.preventDefault();
             
-            try {
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    body: new FormData(form),
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Обновляем счетчик корзины
-                    const cartCounter = document.querySelector('.cart-counter');
-                    if (cartCounter) {
-                        cartCounter.textContent = data.cart_total;
-                    }
-                    // Показываем уведомление
-                    const notification = document.createElement('div');
-                    notification.className = 'cart-notification';
-                    notification.textContent = 'Товар добавлен в корзину!';
-                    document.body.appendChild(notification);
-                    
-                    setTimeout(() => {
-                        notification.remove();
-                    }, 2000);
-                }
-            } catch (error) {
-                console.error('Ошибка:', error);
+            const icon = this.querySelector('.fa-basket-shopping');
+            icon.classList.replace('fa-basket-shopping', 'fa-spinner', 'fa-spin');
+            
+            const formData = new FormData();
+            formData.append('product_id', this.dataset.productId);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            
+            if (this.dataset.colorId) {
+                formData.append('color', this.dataset.colorId);
             }
+            
+            fetch('{% url "add_to_cart" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    icon.classList.replace('fa-spinner', 'fa-check');
+                    setTimeout(() => {
+                        icon.classList.replace('fa-check', 'fa-basket-shopping');
+                    }, 1000);
+                }
+            })
+            .catch(() => {
+                icon.classList.replace('fa-spinner', 'fa-basket-shopping');
+            });
         });
     });
 });
