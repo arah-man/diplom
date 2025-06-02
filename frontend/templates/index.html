@@ -25,28 +25,95 @@
             Наши юбки
         </h1>
 
-        <div class="row row-cols-1 row-cols-md-2 g-4 catalog ">
+
+        <div class="row row-cols-1 row-cols-md-2 g-4 catalog">
             {% for image in products %}
-            <a href="#">
                 <div class="col">
                     <div class="card card__image-wrapper">
-                        <img src="{{image.image.url}}" class="card-img-top card_image" alt="...">
+                        <a href="{{ image.product.get_absolute_url }}">
+                            <img src="{{image.image.url}}" class="card-img-top card_image" alt="{{ image.product.name }}">
+                        </a>
                         <div class="card-body card__text">
-                            <h5 class="card-title ubka_nazvanie dop-text">{{ image.product.name }}</h5>
+                            <h5 class="card-title ubka_nazvanie dop-text">
+                                <a href="{{ image.product.get_absolute_url }}">{{ image.product.name }}</a>
+                            </h5>
                             <p class="card-text card__text-description">{{ image.product.description }}</p>
                             <div class="sail">
-                            <p class="card__text-price">{{ image.product.price }}₽</p>
+                                <p class="card__text-price">{{ image.product.price }}₽</p>
                                 <div class="card_sail">
                                     <span class="fa-solid fa-heart" href="#"></span>
-                                    <span class="fa-solid fa-basket-shopping" href="#"></span>
+                                    <!-- Форма добавления в корзину -->
+                                    <form class="add-to-cart-form" method="post" action="{% url 'add_to_cart' %}" data-product-id="{{ image.product.id }}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="product_id" value="{{ image.product.id }}">
+                                        
+                                        <!-- Выбор цвета (если есть цвета) -->
+                                        {% if image.product.color.all %}
+                                        <input type="hidden" name="color" value="{{ image.color.id }}">
+                                        {% endif %}
+                                        
+                                        <!-- Выбор размера (если есть размеры) -->
+                                        {% if image.product.size.all %}
+                                        <select name="size" class="size-select" style="display: none;">
+                                            {% for size in image.product.size.all %}
+                                            <option value="{{ size.id }}">{{ size.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        {% endif %}
+                                        
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="cart-btn">
+                                            <span class="fa-solid fa-basket-shopping"></span>
+                                        </button>
+                                    </form>
+                                    <a href="#" class="add-to-cart-link" 
+                                    data-product-id="{{ image.product.id }}"
+                                    data-color-id="{{ image.color.id }}"
+                                    data-has-sizes="{{ image.product.size.exists|yesno:'true,false' }}">
+                                        <span class="fa-solid fa-basket-shopping"></span>
+                                    </a>
+                                <!-- <form class="add-to-cart-form" method="post" action="{% url 'add_to_cart' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="product_id" value="{{ image.product.id }}">
+                                        {% if image.color %}
+                                        <input type="hidden" name="color" value="{{ image.color.id }}">
+                                        {% endif %}
+                                        <button type="submit" class="cart-icon-btn">
+                                            <span class="fa-solid fa-basket-shopping"></span>
+                                        </button>
+                                    </form>-->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </a>
-            {%endfor%}
+            {% endfor %}
         </div>
+
+
+        <!-- Модальное окно для выбора размера -->
+        <div class="modal fade" id="sizeModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Выберите размер</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="sizeForm">
+                            <div class="size-options"></div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        <button type="button" class="btn btn-primary" id="confirmSize">Добавить в корзину</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
 
             
 
@@ -82,4 +149,94 @@
         </div>
     </section>
 </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка форм добавления в корзину
+    document.querySelectorAll('.add-to-cart-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Если есть выбор размера, показываем модальное окно
+            const sizeSelect = this.querySelector('.size-select');
+            if (sizeSelect && sizeSelect.style.display === 'none') {
+                const productId = this.dataset.productId;
+                const modal = new bootstrap.Modal(document.getElementById('sizeModal'));
+                
+                // Заполняем модальное окно вариантами размеров
+                const sizeOptions = sizeSelect.innerHTML;
+                document.querySelector('.size-options').innerHTML = sizeOptions;
+                
+                // Обработчик подтверждения выбора
+                document.getElementById('confirmSize').onclick = function() {
+                    const selectedSize = document.querySelector('.size-option.selected');
+                    if (selectedSize) {
+                        const sizeValue = selectedSize.value;
+                        const formData = new FormData(form);
+                        formData.set('size', sizeValue);
+                        
+                        addToCart(formData, form);
+                        modal.hide();
+                    }
+                };
+                
+                modal.show();
+                
+                // Выбор размера в модальном окне
+                document.querySelectorAll('.size-option').forEach(option => {
+                    option.addEventListener('click', function() {
+                        document.querySelectorAll('.size-option').forEach(opt => 
+                            opt.classList.remove('selected'));
+                        this.classList.add('selected');
+                    });
+                });
+            } else {
+                // Если выбора размера нет, отправляем форму сразу
+                addToCart(new FormData(this), this);
+            }
+        });
+    });
+    
+    function addToCart(formData, form) {
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Обновляем счетчик корзины
+                const cartIcon = document.querySelector('.cart-icon');
+                if (cartIcon) {
+                    cartIcon.textContent = data.cart_total;
+                }
+                
+                // Показываем уведомление
+                showToast('Товар добавлен в корзину!');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Ошибка при добавлении в корзину', 'error');
+        });
+    }
+    
+    function showToast(message, type = 'success') {
+        // Реализация toast-уведомления
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+});
+</script>
+
+
 {% endblock %}

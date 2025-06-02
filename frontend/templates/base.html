@@ -36,12 +36,15 @@
                             <a class="fa-solid fa-right-from-bracket fa active" href="{% url "logout" %}"></a>
                             {% if user.is_superuser %}  
                                 <!--админка-->       
-                                <a class="fa-solid fa-user-tie fa active" href="{% url "order_list" %}"></a>
+                                <a class="fa-solid fa-user-tie fa active" href="#"></a>
                             {% else %}
                                 <!--избранное-->       
                                 <a class="fa-regular fa-heart fa active" href="#"></a>
                                 <!--корзина-->
-                                <a class="fa-solid fa-basket-shopping fa active" href="№"></a>
+                                <a href="{% url 'cart_detail' %}" class="fa-solid fa-basket-shopping fa active">
+                                    (<span class="cart-counter">{{ request.user.cart.total_items|default:0 }}</span>)
+                                </a>
+                                <!--<a class="fa-solid fa-basket-shopping fa active" href="{% url 'cart_detail' %}"></a>-->
                                 <!--личный кабинет-->           
                                 <a class="fa-solid fa-user fa active" href="registration.html"></a>
                             {% endif %}

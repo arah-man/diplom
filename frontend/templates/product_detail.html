@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="product-detail">
+    <div class="product-images">
+        {% for image in images %}
+            <img src="{{ image.image.url }}" alt="{{ product.name }}">
+        {% endfor %}
+    </div>
+    
+    <div class="product-info">
+        <h1>{{ product.name }}</h1>
+        <p class="price">{{ product.price }}₽</p>
+        <p class="description">{{ product.description }}</p>
+        
+        <form method="post" action="{% url 'add_to_cart' %}">
+            {% csrf_token %}
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+            
+            {% if product.color.all %}
+            <div class="form-group">
+                <label>Цвет:</label>
+                <select name="color" required>
+                    {% for color in product.color.all %}
+                    <option value="{{ color.id }}">{{ color.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+
+
+
+
+            <div class="size-selection">
+              {% if select_size %}
+              <h3>Выберите размер:</h3>
+              <form method="post" action="{% url 'add_to_cart' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="product_id" value="{{ product.id }}">
+                  <input type="hidden" name="color" value="{{ request.GET.color }}">
+                  
+                  <div class="size-options">
+                      {% for size in product.size.all %}
+                      <button type="submit" name="size" value="{{ size.id }}" class="size-option">
+                          {{ size.name }}
+                      </button>
+                      {% endfor %}
+                  </div>
+              </form>
+              {% endif %}
+          </div>
+            
+
+
+
+
+
+          
+            {% if product.size.all %}
+            <div class="form-group">
+                <label>Размер:</label>
+                <select name="size" required>
+                    {% for size in product.size.all %}
+                    <option value="{{ size.id }}">{{ size.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label>Количество:</label>
+                <input type="number" name="quantity" value="1" min="1">
+            </div>
+            
+            <button type="submit" class="add-to-cart-btn">Добавить в корзину</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

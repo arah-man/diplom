@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="order-success-container">
+    <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
+    </div>
+    
+    <h1>Заказ успешно оформлен!</h1>
+    
+    <div class="order-info">
+        <p>Номер вашего заказа: <strong>№{{ order.id }}</strong></p>
+        <p>Сумма заказа: <strong>{{ order.total_price }} ₽</strong></p>
+        <p>Статус: <span class="status-new">{{ order.get_status_display }}</span></p>
+    </div>
+    
+    <div class="success-actions">
+        <a href="{% url 'product_list' %}" class="continue-shopping">
+            Продолжить покупки
+        </a>
+        <a href="{% url 'order_detail' order.id %}" class="order-details">
+            Детали заказа
+        </a>
+    </div>
+</div>
+{% endblock %}

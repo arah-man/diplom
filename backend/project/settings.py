@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-vep_mw3q442w630o^lrl$gs(0waas79^ma)47(^^=ju8rm+tw+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['arrakhmankulova.pythonanywhere.com', '127.0.0.1']
 
 
 # Application definition
@@ -119,6 +119,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'frontend', 'static')]
+STATIC_ROOT = '/home/arrakhmankulova/diplom/backend/static'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'frontend', 'static', 'img')
