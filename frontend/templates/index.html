@@ -60,71 +60,6 @@
 
 
 
-        <div class="row row-cols-1 row-cols-md-2 g-4 catalog">
-            {% for image in products %}
-                <div class="col">
-                    <div class="card card__image-wrapper">
-                        <a href="{{ image.product.get_absolute_url }}">
-                            <img src="{{image.image.url}}" class="card-img-top card_image" alt="{{ image.product.name }}">
-                        </a>
-                        <div class="card-body card__text">
-                            <h5 class="card-title ubka_nazvanie dop-text">
-                                <a href="{{ image.product.get_absolute_url }}">{{ image.product.name }}</a>
-                            </h5>
-                            <p class="card-text card__text-description">{{ image.product.description }}</p>
-                            <div class="sail">
-                                <p class="card__text-price">{{ image.product.price }}₽</p>
-                                <div class="card_sail">
-                                    <span class="fa-solid fa-heart" href="#"></span>
-                                    <!-- Форма добавления в корзину -->
-                                    <form class="add-to-cart-form" method="post" action="{% url 'add_to_cart' %}" data-product-id="{{ image.product.id }}">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="product_id" value="{{ image.product.id }}">
-                                        
-                                        <!-- Выбор цвета (если есть цвета) -->
-                                        {% if image.product.color.all %}
-                                        <input type="hidden" name="color" value="{{ image.color.id }}">
-                                        {% endif %}
-                                        
-                                        <!-- Выбор размера (если есть размеры) -->
-                                        {% if image.product.size.all %}
-                                        <select name="size" class="size-select" style="display: none;">
-                                            {% for size in image.product.size.all %}
-                                            <option value="{{ size.id }}">{{ size.name }}</option>
-                                            {% endfor %}
-                                        </select>
-                                        {% endif %}
-                                        
-                                        <input type="hidden" name="quantity" value="1">
-                                        <button type="submit" class="cart-btn">
-                                            <span class="fa-solid fa-basket-shopping"></span>
-                                        </button>
-                                    </form>
-                                    <a href="#" class="add-to-cart-link" 
-                                    data-product-id="{{ image.product.id }}"
-                                    data-color-id="{{ image.color.id }}"
-                                    data-has-sizes="{{ image.product.size.exists|yesno:'true,false' }}">
-                                        <span class="fa-solid fa-basket-shopping"></span>
-                                    </a>
-                                <!-- <form class="add-to-cart-form" method="post" action="{% url 'add_to_cart' %}">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="product_id" value="{{ image.product.id }}">
-                                        {% if image.color %}
-                                        <input type="hidden" name="color" value="{{ image.color.id }}">
-                                        {% endif %}
-                                        <button type="submit" class="cart-icon-btn">
-                                            <span class="fa-solid fa-basket-shopping"></span>
-                                        </button>
-                                    </form>-->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-
-
         <!-- Модальное окно для выбора размера -->
         <div class="modal fade" id="sizeModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
@@ -185,6 +120,7 @@
 </main>
 
 <script>
+
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.add-to-cart-link').forEach(link => {
         link.addEventListener('click', function(e) {
@@ -223,6 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
 </script>
 
 

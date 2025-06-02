@@ -56,43 +56,38 @@ def catalog(request):
 @require_POST
 @login_required
 def add_to_cart(request):
-    if request.method == 'POST':
-        try:
-            product_id = request.POST.get('product_id')
-            color_id = request.POST.get('color')
-            size_id = request.POST.get('size')
+    try:
+        product_id = request.POST.get('product_id')
+        color_id = request.POST.get('color')
 
-            product = get_object_or_404(Product, id=product_id)
-            color = get_object_or_404(Color, id=color_id) if color_id else None
-            size = get_object_or_404(Size, id=size_id) if size_id else None
+        product = get_object_or_404(Product, id=product_id)
+        color = get_object_or_404(Color, id=color_id) if color_id else None
 
-            cart, created = Cart.objects.get_or_create(user=request.user)
+        cart, created = Cart.objects.get_or_create(user=request.user)
 
-            cart_item, created = CartItem.objects.get_or_create(
-                cart=cart,
-                product=product,
-                color=color,
-                size=size,
-                defaults={'quantity': 1}
-            )
+        cart_item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            product=product,
+            color=color,
+            defaults={'quantity': 1}
+        )
 
-            if not created:
-                cart_item.quantity += 1
-                cart_item.save()
+        if not created:
+            cart_item.quantity += 1
+            cart_item.save()
 
-            return JsonResponse({
-                'success': True,
-                'cart_total': cart.total_items,
-                'message': 'Товар добавлен в корзину'
-            })
+        return JsonResponse({
+            'success': True,
+            'cart_total': cart.items.count(),
+            'message': 'Товар добавлен в корзину'
+        })
 
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'error': str(e)
-            }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
 
-        return JsonResponse({'success': False}, status=405)
 
 
 
