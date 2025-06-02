@@ -57,38 +57,42 @@ def catalog(request):
 @login_required
 def add_to_cart(request):
     if request.method == 'POST':
-        product_id = request.POST.get('product_id')
-        color_id = request.POST.get('color')
-        size_id = request.POST.get('size')
+        try:
+            product_id = request.POST.get('product_id')
+            color_id = request.POST.get('color')
+            size_id = request.POST.get('size')
 
-        product = get_object_or_404(Product, id=product_id)
-        color = get_object_or_404(Color, id=color_id) if color_id else None
-        size = get_object_or_404(Size, id=size_id) if size_id else None
+            product = get_object_or_404(Product, id=product_id)
+            color = get_object_or_404(Color, id=color_id) if color_id else None
+            size = get_object_or_404(Size, id=size_id) if size_id else None
 
-        cart, created = Cart.objects.get_or_create(user=request.user)
+            cart, created = Cart.objects.get_or_create(user=request.user)
 
-        cart_item, created = CartItem.objects.get_or_create(
-            cart=cart,
-            product=product,
-            color=color,
-            size=size,
-            defaults={'quantity': 1}
-        )
+            cart_item, created = CartItem.objects.get_or_create(
+                cart=cart,
+                product=product,
+                color=color,
+                size=size,
+                defaults={'quantity': 1}
+            )
 
-        if not created:
-            cart_item.quantity += 1
-            cart_item.save()
+            if not created:
+                cart_item.quantity += 1
+                cart_item.save()
 
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({
                 'success': True,
                 'cart_total': cart.total_items,
-                'item_total': cart_item.total_price
+                'message': 'Товар добавлен в корзину'
             })
 
-        return redirect('cart_view')
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
 
-    return redirect('product_list')
+        return JsonResponse({'success': False}, status=405)
 
 
 

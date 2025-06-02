@@ -27,36 +27,7 @@
                 </select>
             </div>
             {% endif %}
-
-
-
-
-
-            <div class="size-selection">
-              {% if select_size %}
-              <h3>Выберите размер:</h3>
-              <form method="post" action="{% url 'add_to_cart' %}">
-                  {% csrf_token %}
-                  <input type="hidden" name="product_id" value="{{ product.id }}">
-                  <input type="hidden" name="color" value="{{ request.GET.color }}">
-                  
-                  <div class="size-options">
-                      {% for size in product.size.all %}
-                      <button type="submit" name="size" value="{{ size.id }}" class="size-option">
-                          {{ size.name }}
-                      </button>
-                      {% endfor %}
-                  </div>
-              </form>
-              {% endif %}
-          </div>
             
-
-
-
-
-
-          
             {% if product.size.all %}
             <div class="form-group">
                 <label>Размер:</label>

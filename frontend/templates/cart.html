@@ -58,7 +58,7 @@
         
         <div class="cart-summary">
             <h3>Итого: {{ cart.total_price }} руб.</h3>
-            <a href="{% url 'checkout' %}" class="checkout-btn">Оформить заказ</a>
+            <a href="{% url 'create_order' %}" class="checkout-btn">Оформить заказ</a>
         </div>
     </div>
     {% else %}
