@@ -44,16 +44,22 @@
       <div class="extra-details">
         <div class="sizes-wrapper">
           <p>Размеры</p>
-          {% for size in image.product.size.all %}
-          <span>{{ size.name }}</span>
+          {% for variation in image.product.productvariation_set.all %}
+            {% if variation.color.id == image.color.id %}
+              {% for size in variation.size.all %}
+                <span>{{ size.name }}</span>
+              {% endfor %}
+            {% endif %}
           {% endfor %}
         </div>
         
         <div class="colors-wrapper">
           <p>Цвета</p>
           <div class="color-list">
-            <span class="color-sample" style="background-color: {{ image.color.hex_code }};" 
-                  title="{{ image.color.name }}" data-color-id="{{ image.color.id }}"></span>
+            {% for variation in image.product.productvariation_set.all %}
+
+              <span class="color-sample" style="background-color: {{ variation.color.hex_code }};" 
+                  title="{{ variation.color.name }}" data-color-id="{{ variation.color.id }}"></span>
             {% endfor %}
           </div>
         </div>
