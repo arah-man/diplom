@@ -28,8 +28,6 @@ class Size(models.Model):
 class Product(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
-    color = models.ManyToManyField(Color)
-    size = models.ManyToManyField(Size)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -37,7 +35,16 @@ class Product(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('product_detail', args=[str(self.id)])
+        return reverse('product_detail', args=[str(self.pk)])
+
+class ProductVariation(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    color = models.ForeignKey(Color, on_delete=models.CASCADE)
+    size = models.ManyToManyField(Size)
+
+
+    def __str__(self):
+        return f"{self.product.name} - {self.color.name}"
 
 
 class ProductImage(models.Model):

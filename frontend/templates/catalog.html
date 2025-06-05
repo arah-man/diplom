@@ -52,9 +52,8 @@
         <div class="colors-wrapper">
           <p>Цвета</p>
           <div class="color-list">
-            {% for color in image.product.color.all %}
-            <span class="color-sample" style="background-color: {{ color.hex_code }};" 
-                  title="{{ color.name }}" data-color-id="{{ color.id }}"></span>
+            <span class="color-sample" style="background-color: {{ image.color.hex_code }};" 
+                  title="{{ image.color.name }}" data-color-id="{{ image.color.id }}"></span>
             {% endfor %}
           </div>
         </div>

@@ -13,7 +13,7 @@
             <p>сочетай</p>
             <p>сияй</p>
         </div>
-        <a href="catalog.html" class="btn">
+        <a href="{% url 'catalog'    %}" class="btn">
             <p class="text_btn">К покупкам!</p>
         </a>
     </div>
@@ -25,40 +25,34 @@
             Наши юбки
         </h1>
 
-
         <div class="row row-cols-1 row-cols-md-2 g-4 catalog">
-    {% for image in products %}
-    <div class="col">
-        <div class="card card__image-wrapper">
-            <a href="{{ image.product.get_absolute_url }}">
-                <img src="{{image.image.url}}" class="card-img-top card_image" alt="{{ image.product.name }}">
-            </a>
-            <div class="card-body card__text">
-                <h5 class="card-title ubka_nazvanie dop-text">
-                    <a href="{{ image.product.get_absolute_url }}">{{ image.product.name }}</a>
-                </h5>
-                <p class="card-text card__text-description">{{ image.product.description }}</p>
-                <div class="sail">
-                    <p class="card__text-price">{{ image.product.price }}₽</p>
-                    <div class="card_sail">
-                        <span class="fa-solid fa-heart" href="#"></span>
-                        
-                        <!-- Заменяем форму на ссылку с обработкой через JavaScript -->
-                        <a href="#" class="add-to-cart-link" 
-                           data-product-id="{{ image.product.id }}"
-                           {% if image.color %}data-color-id="{{ image.color.id }}"{% endif %}>
-                            <span class="fa-solid fa-basket-shopping"></span>
-                        </a>
+            {% for image in products %}
+            <div class="col">
+                <div class="card card__image-wrapper">
+                    <a href="{{ image.product.get_absolute_url }}">
+                        <img src="{{image.image.url}}" class="card-img-top card_image" alt="{{ image.product.name }}">
+                    </a>
+                    <div class="card-body card__text">
+                        <h5 class="card-title ubka_nazvanie dop-text">
+                            <a href="{{ image.product.get_absolute_url }}">{{ image.product.name }}</a>
+                        </h5>
+                        <p class="card-text card__text-description">{{ image.product.description }}</p>
+                        <div class="sail">
+                            <p class="card__text-price">{{ image.product.price }}₽</p>
+                            <div class="card_sail">
+                                <span class="fa-solid fa-heart" href="#"></span>
+                                <a href="#" class="add-to-cart-link" 
+                                   data-product-id="{{ image.product.id }}"
+                                   {% if image.color %}data-color-id="{{ image.color.id }}"{% endif %}>
+                                    <span class="fa-solid fa-basket-shopping"></span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-    </div>
-    {% endfor %}
-</div>
-
-
-
 
         <!-- Модальное окно для выбора размера -->
         <div class="modal fade" id="sizeModal" tabindex="-1" aria-hidden="true">
@@ -74,17 +68,18 @@
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                        <button type="button" class="btn btn-primary" id="confirmSize">Добавить в корзину</button>
+                        <form>
+                        <div class="form-row">
+                            <button type="button" class="btn" data-bs-dismiss="modal">Закрыть</button>
+                        </div>
+                        <div class="form-row">
+                            <button type="button" class="btn" id="confirmSize">Добавить в корзину</button>
+                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-
-
-
-
-            
 
         <div class="news">
             <h1>Главные Новости</h1>
@@ -119,48 +114,111 @@
     </section>
 </main>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+$(document).ready(function() {
+    let currentProductId = null;
+    let currentColorId = null;
+    let $activeButton = null;
+    const sizeModal = new bootstrap.Modal(document.getElementById('sizeModal'));
 
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.add-to-cart-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const icon = this.querySelector('.fa-basket-shopping');
-            icon.classList.replace('fa-basket-shopping', 'fa-spinner', 'fa-spin');
-            
-            const formData = new FormData();
-            formData.append('product_id', this.dataset.productId);
-            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-            
-            if (this.dataset.colorId) {
-                formData.append('color', this.dataset.colorId);
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
-            
-            fetch('{% url "add_to_cart" %}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+        }
+        return cookieValue;
+    }
+
+    $('.add-to-cart-link').click(function(e) {
+        e.preventDefault();
+        currentProductId = $(this).data('product-id');
+        currentColorId = $(this).data('color-id') || null;
+        $activeButton = $(this); // сохранили кнопку
+
+        const $icon = $activeButton.find('span');
+        $icon.removeClass('fa-basket-shopping').addClass('fa-spinner fa-spin');
+
+        $.get(`/get_sizes/?product_id=${currentProductId}${currentColorId ? `&color_id=${currentColorId}` : ''}`, function(data) {
+            const $sizeOptions = $('.size-options');
+            $sizeOptions.empty();
+
+            if (data.sizes && data.sizes.length > 0) {
+                for (let size of data.sizes) {
+                    $sizeOptions.append(`
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="size" id="size-${size.id}" value="${size.id}" required>
+                            <label class="form-check-label" for="size-${size.id}">${size.name}</label>
+                        </div>
+                    `);
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.success) {
-                    icon.classList.replace('fa-spinner', 'fa-check');
-                    setTimeout(() => {
-                        icon.classList.replace('fa-check', 'fa-basket-shopping');
-                    }, 1000);
-                }
-            })
-            .catch(() => {
-                icon.classList.replace('fa-spinner', 'fa-basket-shopping');
-            });
+                sizeModal.show();
+            } else {
+                addToCart(currentProductId, currentColorId, null, $activeButton);
+            }
+
+            $icon.removeClass('fa-spinner fa-spin').addClass('fa-basket-shopping');
+        }).fail(function() {
+            $activeButton.find('span').removeClass('fa-spinner fa-spin').addClass('fa-basket-shopping');
+            alert('Ошибка загрузки размеров.');
         });
     });
+
+    $('#confirmSize').click(function() {
+        const sizeId = $('input[name="size"]:checked').val();
+        if (!sizeId) {
+            alert('Пожалуйста, выберите размер');
+            return;
+        }
+
+        addToCart(currentProductId, currentColorId, sizeId, $activeButton);
+        sizeModal.hide();
+    });
+
+    function addToCart(productId, colorId, sizeId, $button) {
+        const csrftoken = getCookie('csrftoken');
+        const $icon = $button.find('span');
+
+        $icon.removeClass('fa-basket-shopping').addClass('fa-spinner fa-spin');
+
+        $.ajax({
+            url: '{% url "add_to_cart" %}',
+            type: 'POST',
+            headers: {'X-CSRFToken': csrftoken},
+            data: {
+                'product_id': productId,
+                'color': colorId,
+                'size': sizeId
+            },
+            success: function(data) {
+                $icon.removeClass('fa-spinner fa-spin').addClass('fa-check');
+                setTimeout(() => {
+                    $icon.removeClass('fa-check').addClass('fa-basket-shopping');
+                }, 1000);
+
+                if (data.cart_count !== undefined) {
+                    $('.cart-count').text(data.cart_count);
+                }
+
+                if (!data.success) {
+                    alert(data.message || 'Ошибка добавления в корзину');
+                }
+            },
+            error: function(xhr) {
+                $icon.removeClass('fa-spinner fa-spin').addClass('fa-basket-shopping');
+                alert(xhr.responseJSON?.message || 'Ошибка на сервере при добавлении в корзину');
+            }
+        });
+    }
 });
 
 </script>
-
-
 {% endblock %}

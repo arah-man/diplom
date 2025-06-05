@@ -5,7 +5,6 @@
         <link rel="stylesheet" href="{%static 'my_css/font_awesome.css'%}">
         <link rel="stylesheet" href="{%static 'bootstrap.min.css'%}">
         <link rel="stylesheet" href="{% static 'my_css/style.css' %}">
-
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{% block title %} {% endblock %}</title>
@@ -32,8 +31,6 @@
                             <!--вход-->
                             <a class="fa-solid fa-right-to-bracket fa active" href="{% url "login" %}"></a>
                         {% else %}
-                            <!--выход-->
-                            <a class="fa-solid fa-right-from-bracket fa active" href="{% url "logout" %}"></a>
                             {% if user.is_superuser %}  
                                 <!--админка-->       
                                 <a class="fa-solid fa-user-tie fa active" href="#"></a>
@@ -48,6 +45,8 @@
                                 <!--личный кабинет-->           
                                 <a class="fa-solid fa-user fa active" href="registration.html"></a>
                             {% endif %}
+                            <!--выход-->
+                            <a class="fa-solid fa-right-from-bracket fa active" href="{% url "logout" %}"></a>
                         {% endif %}
                     </form>
                 </div>

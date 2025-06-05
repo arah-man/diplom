@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
 
-from general.models import Product, Color, Size, ProductImage, Order, Cart, CartItem
+from general.models import Product, Color, Size, ProductImage, Order, Cart, CartItem, ProductVariation
 
 
 def index(request):
@@ -30,7 +30,7 @@ def logout_view(request):
     return redirect('index')
 
 def catalog(request):
-    # Получаем последние изображения для каждого продукта+цвета
+    # Получаем последние изображения для каждой комбинации продукт+цвет
     latest_images = (
         ProductImage.objects
         .values('product', 'color')
@@ -38,10 +38,12 @@ def catalog(request):
         .values_list('latest_image_id', flat=True)
     )
 
-    # Получаем полные объекты изображений с предзагрузкой связанных данных
-    product_images = ProductImage.objects.filter(
-        id__in=latest_images
-    ).select_related('product', 'color').prefetch_related('product__color', 'product__size')
+    # Загружаем объекты изображений с продуктами и цветами
+    product_images = (
+        ProductImage.objects
+        .filter(id__in=latest_images)
+        .select_related('product', 'color')  # этого достаточно
+    )
 
     context = {
         'product_images': product_images
@@ -59,9 +61,11 @@ def add_to_cart(request):
     try:
         product_id = request.POST.get('product_id')
         color_id = request.POST.get('color')
+        size_id = request.POST.get('size')
 
         product = get_object_or_404(Product, id=product_id)
         color = get_object_or_404(Color, id=color_id) if color_id else None
+        size = get_object_or_404(Size, id=size_id) if size_id else None
 
         cart, created = Cart.objects.get_or_create(user=request.user)
 
@@ -69,6 +73,7 @@ def add_to_cart(request):
             cart=cart,
             product=product,
             color=color,
+            size=size,
             defaults={'quantity': 1}
         )
 
@@ -78,8 +83,10 @@ def add_to_cart(request):
 
         return JsonResponse({
             'success': True,
-            'cart_total': cart.items.count(),
-            'message': 'Товар добавлен в корзину'
+            'redirect_url': product.get_absolute_url(),  # Перенаправляем на страницу товара
+            'message': 'Товар добавлен в корзину',
+            'cart_count': cart.total_items
+
         })
 
     except Exception as e:
@@ -178,6 +185,24 @@ def create_order(request):
         return render(request, 'order_success.html', {'order': order})
 
     return redirect('cart_detail')
+
+
+# получение размера
+def get_sizes(request):
+    product_id = request.GET.get('product_id')
+    color_id = request.GET.get('color_id')
+    # Здесь логика получения доступных размеров для товара и цвета
+    # Например:
+    try:
+        product_color = ProductVariation.objects.get(product_id = product_id, color_id = color_id)
+        sizes = product_color.size.all()
+        sizes_data = [{'id': size.id, 'name': size.name} for size in sizes]
+        return JsonResponse({'sizes': sizes_data})
+    except ProductVariation.DoesNotExist:
+        return JsonResponse({'sizes': []})
+
+
+
 
 
 

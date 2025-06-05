@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from general.models import Color, Size, Product, ProductImage, UserProfile, Order, Cart, CartItem
+from general.models import Color, Size, Product, ProductImage, UserProfile, Order, Cart, CartItem, ProductVariation
 
 
 admin.site.register(Size)
@@ -11,6 +11,7 @@ admin.site.register(Order)
 
 admin.site.register(Cart)
 admin.site.register(CartItem)
+admin.site.register(ProductVariation)
 
 
 class ColorAdmin(admin.ModelAdmin):
