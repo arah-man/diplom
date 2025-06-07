@@ -50,11 +50,8 @@ def catalog(request):
     }
     return render(request, "catalog.html", context)
 
-
-
-
 # корзина
-# views.py
+# добавление в корзину
 @require_POST
 @login_required
 def add_to_cart(request):
@@ -110,7 +107,7 @@ def get_sizes(request):
     except ProductVariation.DoesNotExist:
         return JsonResponse({'sizes': []})
 
-
+# получение цвета
 def switch_color(request):
     product_id = request.GET.get('product_id')
     color_id = request.GET.get('color_id')
@@ -129,15 +126,59 @@ def switch_color(request):
 
     return render(request, 'product_card.html', context)
 
-
+# корзина
 @login_required
 def cart_view(request):
-    cart, created = Cart.objects.get_or_create(user=request.user)
-    items = cart.items.all()
-    return render(request, 'cart.html', {'cart': cart, 'items': items})
+    # Загружаем все элементы корзины текущего пользователя
+    items = CartItem.objects.filter(cart__user=request.user).select_related('product', 'color', 'size')
+
+    # Получаем последние изображения по сочетаниям product + color
+    latest_images = (
+        ProductImage.objects
+        .values('product', 'color')
+        .annotate(latest_id=Max('id'))
+        .values_list('latest_id', flat=True)
+    )
+
+    images = (
+        ProductImage.objects
+        .filter(id__in=latest_images)
+        .select_related('product', 'color')
+    )
+
+    # Создаём словарь (product_id, color_id) → image
+    image_map = {
+        (img.product.id, img.color.id): img
+        for img in images
+    }
+
+    # Назначаем каждому item его картинку
+    for item in items:
+        key = (item.product.id, item.color.id if item.color else None)
+        item.image = image_map.get(key)
+
+    # Общая сумма
+    total_price = sum(item.total_price for item in items)
+
+    return render(request, 'cart.html', {
+        'items': items,
+        'cart': {
+            'total_price': total_price
+        }
+    })
 
 
 
+
+
+
+
+
+
+
+@login_required
+def checkout(request):
+    return render(request, 'checkout.html')
 
 @login_required
 def remove_from_cart(request, item_id):

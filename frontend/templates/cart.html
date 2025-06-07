@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="cart-container">
     <h1 class="cart-title">Ваша корзина</h1>
-    
+
     {% if items %}
     <div class="cart-items">
         <table class="cart-table">
@@ -23,18 +24,15 @@
                 <tr class="cart-item">
                     <td>
                         <a href="{{ item.product.get_absolute_url }}" class="cart-product-link">
-                            <img src="{{ item.product.productimage_set.first.image.url }}" 
-                                 alt="{{ item.product.name }}"
-                                 class="cart-product-image">
                             {{ item.product.name }}
                         </a>
                     </td>
                     <td>
                         {% if item.color %}
-                        <div class="color-  " style="background: {{ item.color.hex_code }}"></div>
-                        {{ item.color.name }}
+                            <div class="color-dot" style="background: {{ item.color.hex_code }};"></div>
+                            {{ item.color.name }}
                         {% else %}
-                        —
+                            —
                         {% endif %}
                     </td>
                     <td>{{ item.size.name|default:"—" }}</td>
@@ -42,9 +40,7 @@
                     <td>
                         <form method="post" action="{% url 'update_cart_item' item.id %}" class="update-form">
                             {% csrf_token %}
-                            <input type="number" name="quantity" 
-                                   value="{{ item.quantity }}" min="1"
-                                   class="quantity-input">
+                            <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="quantity-input">
                         </form>
                     </td>
                     <td>{{ item.total_price }} ₽</td>
@@ -60,16 +56,22 @@
                 {% endfor %}
             </tbody>
         </table>
-        
+
         <div class="cart-summary">
             <div class="cart-total">
                 <span>Итого:</span>
                 <span class="total-price">{{ cart.total_price }} ₽</span>
             </div>
-            
-            <a href="{% url 'create_order' %}" class="checkout-btn">
-                Оформить заказ
-            </a>
+
+            <form method="post" action="{% url 'create_order' %}" class="checkout-form">
+                {% csrf_token %}
+                <div class="form-row">
+                    <button type="submit" class="checkout-btn">
+                        Оформить заказ
+                    </button>
+                </div>
+            </form>
+
         </div>
     </div>
     {% else %}
