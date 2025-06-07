@@ -7,80 +7,121 @@
 
     {% if items %}
     <div class="cart-items">
-        <table class="cart-table">
-            <thead>
-                <tr>
-                    <th>Товар</th>
-                    <th>Цвет</th>
-                    <th>Размер</th>
-                    <th>Цена</th>
-                    <th>Количество</th>
-                    <th>Сумма</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in items %}
-                <tr class="cart-item">
-                    <td>
-                        <a href="{{ item.product.get_absolute_url }}" class="cart-product-link">
-                            {{ item.product.name }}
-                        </a>
-                    </td>
-                    <td>
-                        {% if item.color %}
-                            <div class="color-dot" style="background: {{ item.color.hex_code }};"></div>
-                            {{ item.color.name }}
-                        {% else %}
-                            —
-                        {% endif %}
-                    </td>
-                    <td>{{ item.size.name|default:"—" }}</td>
-                    <td>{{ item.product.price }} ₽</td>
-                    <td>
-                        <form method="post" action="{% url 'update_cart_item' item.id %}" class="update-form">
-                            {% csrf_token %}
-                            <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="quantity-input">
-                        </form>
-                    </td>
-                    <td>{{ item.total_price }} ₽</td>
-                    <td>
-                        <form method="post" action="{% url 'remove_from_cart' item.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="remove-btn">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <form method="post" action="{% url 'create_order' %}" id="cart-form">
+            {% csrf_token %}
 
-        <div class="cart-summary">
-            <div class="cart-total">
-                <span>Итого:</span>
-                <span class="total-price">{{ cart.total_price }} ₽</span>
-            </div>
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th></th> <!-- Чекбокс -->
+                        <th>Товар</th>
+                        <th>Цвет</th>
+                        <th>Размер</th>
+                        <th>Цена</th>
+                        <th>Количество</th>
+                        <th>Сумма</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr class="cart-item">
+                        <td>
+                            <input type="checkbox"
+                                   name="selected_items"
+                                   value="{{ item.id }}"
+                                   class="select-item"
+                                   data-total="{{ item.total_price }}"
+                                   checked>
+                        </td>
+                        <td>
+                            <a href="{{ item.product.get_absolute_url }}" class="cart-product-link">
+                                {{ item.product.name }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if item.color %}
+                                <div class="color-dot" style="background: {{ item.color.hex_code }};"></div>
+                                {{ item.color.name }}
+                            {% else %}
+                                — 
+                            {% endif %}
+                        </td>
+                        <td>{{ item.size.name|default:"—" }}</td>
+                        <td>{{ item.product.price }} ₽</td>
+                        <td>
+                            <form method="post" action="{% url 'update_cart_item' item.id %}" class="update-form">
+                                {% csrf_token %}
+                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="quantity-input">
+                            </form>
+                        </td>
+                        <td>{{ item.total_price }} ₽</td>
+                        <td>
+                            <form method="post" action="{% url 'remove_from_cart' item.id %}">
+                                {% csrf_token %}
+                                <div class="form-row">
+                                    <button type="submit" class="remove-btn">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
 
-            <form method="post" action="{% url 'create_order' %}" class="checkout-form">
-                {% csrf_token %}
+            <div class="cart-summary">
+                <div class="cart-total">
+                    <span>Итого:</span>
+                    <span class="total-price" id="total-price-display">0 ₽</span>
+                </div>
+
                 <div class="form-row">
-                    <button type="submit" class="checkout-btn">
+                    <button type="submit" class="checkout-btn" id="checkout-btn">
                         Оформить заказ
                     </button>
                 </div>
-            </form>
-
-        </div>
+            </div>
+        </form>
     </div>
+
     {% else %}
     <div class="cart-empty">
         <p>Ваша корзина пуста</p>
-        <a href="{% url 'product_list' %}" class="continue-shopping">
+        <a href="{% url 'catalog' %}" class="continue-shopping">
             Продолжить покупки
         </a>
     </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const checkboxes = document.querySelectorAll(".select-item");
+    const totalDisplay = document.getElementById("total-price-display");
+    const checkoutBtn = document.getElementById("checkout-btn");
+
+    function recalculateTotal() {
+        let total = 0;
+        let selected = 0;
+
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                total += parseFloat(cb.dataset.total);
+                selected += 1;
+            }
+        });
+
+        totalDisplay.textContent = total.toFixed(2) + " ₽";
+        checkoutBtn.disabled = selected === 0;
+    }
+
+    checkboxes.forEach(cb => {
+        cb.addEventListener("change", recalculateTotal);
+    });
+
+    recalculateTotal(); // начальный расчет
+});
+</script>
 {% endblock %}

@@ -4,6 +4,7 @@ from django.db.models import Max, Prefetch
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
+from django.contrib import messages
 
 
 from general.models import Product, Color, Size, ProductImage, Order, Cart, CartItem, ProductVariation
@@ -166,6 +167,43 @@ def cart_view(request):
             'total_price': total_price
         }
     })
+
+# оформление заказа
+@login_required
+def create_order(request):
+    if request.method == 'POST':
+        selected_ids = request.POST.getlist('selected_items')
+
+        if not selected_ids:
+            messages.warning(request, "Вы не выбрали товары для оформления.")
+            return redirect('cart_detail')
+
+        cart = get_object_or_404(Cart, user=request.user)
+        items = cart.items.filter(id__in=selected_ids)
+
+        if not items.exists():
+            messages.warning(request, "Выбранные товары не найдены.")
+            return redirect('cart_detail')
+
+        # Создаем заказ
+        order = Order.objects.create(
+            user=request.user,
+            address=request.POST.get('address', ''),  # или запросить отдельно
+            type_payment=request.POST.get('payment_method', 'cash'),
+            status='0'
+        )
+
+        # Добавляем товары в заказ
+        for item in items:
+            order.product.add(item.product)
+
+        # Удаляем оформленные позиции из корзины
+        items.delete()
+
+        return render(request, 'order_success.html', {'order': order})
+
+    return redirect('cart_detail')
+
 
 
 
