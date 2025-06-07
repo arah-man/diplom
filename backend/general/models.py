@@ -67,6 +67,12 @@ class UserProfile(models.Model):
     email = models.EmailField(max_length=100, null=True, blank=True)
     date_birth = models.DateField()
 
+class PickupPoint(models.Model):
+    address = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.address
+
 class Order(models.Model):
     TYPE_PAYMENT_CHOICES = [
         ("0", "Банковская карта "),
@@ -84,7 +90,12 @@ class Order(models.Model):
         User,
         on_delete=models.CASCADE
     )
-    address = models.CharField(max_length=100)
+    address = models.ForeignKey(
+        PickupPoint,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=False
+    )
     type_payment = models.CharField(max_length=1, choices=TYPE_PAYMENT_CHOICES)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='0')
     date_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
@@ -92,6 +103,20 @@ class Order(models.Model):
         Product,
         related_name='orders'
     )
+
+    def __str__(self):
+        return f"Заказ #{self.id} от {self.user.username}"
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)  # цена на момент заказа
+    color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True)
+    size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def total_price(self):
+        return self.quantity * self.price
 
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

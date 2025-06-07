@@ -485,6 +485,16 @@ form > .form-row > button:hover {
 .color-sample.selected {
   outline: 2px solid black;
 }
+.image-link {
+  display: block;
+  position: relative;
+  z-index: 10;
+}
+a, a:hover, a:visited {
+	color: black;
+	text-decoration: none;
+	transition: transform 0.2s;
+}
 /* Адаптивность */
 @media (min-width: 768px) {
   .image-holder {
@@ -492,84 +502,6 @@ form > .form-row > button:hover {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.admin-panel {
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        
-        .orders-page {
-            background-color: white;
-            margin-bottom: 30px;
-        }
-
-        .products-page {
-            background-color: white;
-            margin-bottom: 30px;
-        }
-
-        .order-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .order-table th,
-        .order-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .order-table tbody tr:hover {
-            background-color: #e8f4f8;
-        }
-
-        .product-card {
-            padding: 10px;
-            margin-bottom: 10px;
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .product-card h3 {
-            margin-top: 0;
-        }
-
-        #orderForm {
-            display: none;
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-/* корзина */
 /* Страница корзины */
 .cart-container {
     max-width: 1200px;
@@ -840,6 +772,86 @@ form > .form-row > button:hover {
 
 
 
+.admin-panel {
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .orders-page {
+            background-color: white;
+            margin-bottom: 30px;
+        }
+
+        .products-page {
+            background-color: white;
+            margin-bottom: 30px;
+        }
+
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .order-table th,
+        .order-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .order-table tbody tr:hover {
+            background-color: #e8f4f8;
+        }
+
+        .product-card {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .product-card h3 {
+            margin-top: 0;
+        }
+
+        #orderForm {
+            display: none;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+/* корзина */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -907,13 +919,3 @@ form > .form-row > button:hover {
 
 
 
-.image-link {
-  display: block;
-  position: relative;
-  z-index: 10;
-}
-a, a:hover, a:visited {
-	color: black;
-	text-decoration: none;
-	transition: transform 0.2s;
-}

@@ -6,8 +6,8 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 
-
-from general.models import Product, Color, Size, ProductImage, Order, Cart, CartItem, ProductVariation
+from general.forms import OrderForm
+from general.models import Product, Color, Size, ProductImage, Order, Cart, CartItem, ProductVariation, OrderItem
 
 
 def index(request):
@@ -93,7 +93,6 @@ def add_to_cart(request):
             'error': str(e)
         }, status=400)
 
-
 # получение размера
 def get_sizes(request):
     product_id = request.GET.get('product_id')
@@ -171,38 +170,58 @@ def cart_view(request):
 # оформление заказа
 @login_required
 def create_order(request):
-    if request.method == 'POST':
-        selected_ids = request.POST.getlist('selected_items')
+    selected_items_ids = request.session.get("selected_items")
 
-        if not selected_ids:
+    if not selected_items_ids:
+        messages.error(request, "Вы не выбрали товары для оформления.")
+        return redirect("cart")
+
+    selected_items = CartItem.objects.filter(id__in=selected_items_ids, cart__user=request.user)
+    total_price = sum(item.total_price for item in selected_items)
+
+    if request.method == "POST":
+        form = OrderForm(request.POST)
+        if form.is_valid():
+            order = form.save(commit=False)
+            order.user = request.user
+            order.save()
+
+            for item in selected_items:
+                OrderItem.objects.create(
+                    order=order,
+                    product=item.product,
+                    quantity=item.quantity,
+                    price=item.product.price
+                )
+
+            selected_items.delete()
+            del request.session["selected_items"]
+            return redirect("order_success")
+        else:
+            print("Ошибки формы:", form.errors)
+    else:
+        form = OrderForm()
+
+    return render(request, "create_order.html", {
+        "form": form,
+        "selected_items": selected_items,
+        "total_price": total_price,
+    })
+
+
+# передача чекбоксов из корзины в оформление заказа
+def proceed_to_order(request):
+    if request.method == "POST":
+        selected_items = request.POST.getlist("selected_items")
+        if not selected_items:
             messages.warning(request, "Вы не выбрали товары для оформления.")
-            return redirect('cart_detail')
+            return redirect("cart")
+        request.session["selected_items"] = selected_items
+        return redirect("create_order")  # URL на create_order_view
+    return redirect("cart")
 
-        cart = get_object_or_404(Cart, user=request.user)
-        items = cart.items.filter(id__in=selected_ids)
-
-        if not items.exists():
-            messages.warning(request, "Выбранные товары не найдены.")
-            return redirect('cart_detail')
-
-        # Создаем заказ
-        order = Order.objects.create(
-            user=request.user,
-            address=request.POST.get('address', ''),  # или запросить отдельно
-            type_payment=request.POST.get('payment_method', 'cash'),
-            status='0'
-        )
-
-        # Добавляем товары в заказ
-        for item in items:
-            order.product.add(item.product)
-
-        # Удаляем оформленные позиции из корзины
-        items.delete()
-
-        return render(request, 'order_success.html', {'order': order})
-
-    return redirect('cart_detail')
+def order_success(request):
+    return render(request, 'order_success.html')
 
 
 
@@ -214,9 +233,7 @@ def create_order(request):
 
 
 
-@login_required
-def checkout(request):
-    return render(request, 'checkout.html')
+
 
 @login_required
 def remove_from_cart(request, item_id):
@@ -269,32 +286,32 @@ def cart_detail(request):
     })
 
 
-@login_required
-def create_order(request):
-    if request.method == 'POST':
-        cart = request.user.cart
-        items = cart.items.all()
-
-        if not items.exists():
-            return redirect('cart_detail')
-
-        # Создаем заказ
-        order = Order.objects.create(
-            user=request.user,
-            address=request.POST.get('address'),
-            type_payment=request.POST.get('payment_method'),
-            status='0'  # Новый заказ
-        )
-
-        # Добавляем товары в заказ
-        order.product.set([item.product for item in items])
-
-        # Очищаем корзину
-        items.delete()
-
-        return render(request, 'order_success.html', {'order': order})
-
-    return redirect('cart_detail')
+# @login_required
+# def create_order(request):
+#     if request.method == 'POST':
+#         cart = request.user.cart
+#         items = cart.items.all()
+#
+#         if not items.exists():
+#             return redirect('cart_detail')
+#
+#         # Создаем заказ
+#         order = Order.objects.create(
+#             user=request.user,
+#             address=request.POST.get('address'),
+#             type_payment=request.POST.get('payment_method'),
+#             status='0'  # Новый заказ
+#         )
+#
+#         # Добавляем товары в заказ
+#         order.product.set([item.product for item in items])
+#
+#         # Очищаем корзину
+#         items.delete()
+#
+#         return render(request, 'order_success.html', {'order': order})
+#
+#     return redirect('cart_detail')
 
 
 

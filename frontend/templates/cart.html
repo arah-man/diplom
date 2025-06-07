@@ -7,7 +7,7 @@
 
     {% if items %}
     <div class="cart-items">
-        <form method="post" action="{% url 'create_order' %}" id="cart-form">
+        <form method="post" action="{% url 'proceed_to_order' %}" id="cart-form">
             {% csrf_token %}
 
             <table class="cart-table">
@@ -50,20 +50,20 @@
                         <td>{{ item.size.name|default:"—" }}</td>
                         <td>{{ item.product.price }} ₽</td>
                         <td>
-                            <form method="post" action="{% url 'update_cart_item' item.id %}" class="update-form">
-                                {% csrf_token %}
-                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="quantity-input">
-                            </form>
+                            <input type="number"
+                                   name="quantity_{{ item.id }}"
+                                   value="{{ item.quantity }}"
+                                   min="1"
+                                   class="quantity-input"
+                                   disabled>
                         </td>
                         <td>{{ item.total_price }} ₽</td>
                         <td>
                             <form method="post" action="{% url 'remove_from_cart' item.id %}">
                                 {% csrf_token %}
-                                <div class="form-row">
-                                    <button type="submit" class="remove-btn">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
+                                <button type="submit" class="remove-btn">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </form>
                         </td>
                     </tr>
@@ -85,7 +85,6 @@
             </div>
         </form>
     </div>
-
     {% else %}
     <div class="cart-empty">
         <p>Ваша корзина пуста</p>
@@ -121,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
         cb.addEventListener("change", recalculateTotal);
     });
 
-    recalculateTotal(); // начальный расчет
+    recalculateTotal(); // стартовый пересчёт
 });
 </script>
 {% endblock %}

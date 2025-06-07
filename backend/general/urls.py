@@ -2,7 +2,7 @@ from tkinter.font import names
 from django.urls import path
 from django.contrib.auth import views as auth_views
 
-from general.views import index, catalog, logout_view, cart_view, add_to_cart, remove_from_cart, update_cart_item, product_detail, cart_detail, create_order, get_sizes, switch_color, checkout
+from general.views import index, catalog, logout_view, cart_view, add_to_cart, remove_from_cart, update_cart_item, product_detail, cart_detail, create_order, get_sizes, switch_color, order_success, proceed_to_order
 urlpatterns = [
     path('', index, name = 'index'),
     path('catalog/', catalog, name='catalog'),
@@ -20,7 +20,8 @@ urlpatterns = [
     path('create_order/', create_order, name='create_order'),
     path('get_sizes/', get_sizes, name='get_sizes'),
     path('switch_color/', switch_color, name='switch_color'),
-    path('checkout/', checkout, name='checkout'),
+    path('proceed_to_order/', proceed_to_order, name='proceed_to_order'),
+    path('order_success/', order_success, name='order_success'),
 
     # path('product_card/', product_card, name='product_card'),
     # path('product_detail/', product_detail, name='product_detail'),
