@@ -21,7 +21,7 @@ urlpatterns = [
     path('get_sizes/', get_sizes, name='get_sizes'),
     path('switch_color/', switch_color, name='switch_color'),
     path('proceed_to_order/', proceed_to_order, name='proceed_to_order'),
-    path('order_success/', order_success, name='order_success'),
+    path('order_success/<int:order_id>/', order_success, name='order_success'),
 
     # path('product_card/', product_card, name='product_card'),
     # path('product_detail/', product_detail, name='product_detail'),

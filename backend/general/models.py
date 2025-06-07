@@ -107,6 +107,10 @@ class Order(models.Model):
     def __str__(self):
         return f"Заказ #{self.id} от {self.user.username}"
 
+    @property
+    def total_price(self):
+        return sum(item.total_price for item in self.items.all())
+
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -115,6 +119,7 @@ class OrderItem(models.Model):
     color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True)
     size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, blank=True)
 
+    @property
     def total_price(self):
         return self.quantity * self.price
 

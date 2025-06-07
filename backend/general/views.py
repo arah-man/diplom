@@ -196,7 +196,7 @@ def create_order(request):
 
             selected_items.delete()
             del request.session["selected_items"]
-            return redirect("order_success")
+            return redirect("order_success", order_id=order.id)
         else:
             print("Ошибки формы:", form.errors)
     else:
@@ -220,8 +220,9 @@ def proceed_to_order(request):
         return redirect("create_order")  # URL на create_order_view
     return redirect("cart")
 
-def order_success(request):
-    return render(request, 'order_success.html')
+def order_success(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    return render(request, "order_success.html", {"order": order})
 
 
 
