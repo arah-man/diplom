@@ -2,7 +2,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max, Prefetch
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 
 
@@ -96,7 +96,38 @@ def add_to_cart(request):
         }, status=400)
 
 
+# получение размера
+def get_sizes(request):
+    product_id = request.GET.get('product_id')
+    color_id = request.GET.get('color_id')
+    # Здесь логика получения доступных размеров для товара и цвета
+    # Например:
+    try:
+        product_color = ProductVariation.objects.get(product_id = product_id, color_id = color_id)
+        sizes = product_color.size.all()
+        sizes_data = [{'id': size.id, 'name': size.name} for size in sizes]
+        return JsonResponse({'sizes': sizes_data})
+    except ProductVariation.DoesNotExist:
+        return JsonResponse({'sizes': []})
 
+
+def switch_color(request):
+    product_id = request.GET.get('product_id')
+    color_id = request.GET.get('color_id')
+
+    product = get_object_or_404(Product, id=product_id)
+    variation = product.productvariation_set.filter(color_id=color_id).first()
+
+    if not variation:
+        return HttpResponse("Цвет не найден", status=404)
+
+    image = variation.productimage_set.first
+
+    context = {
+        'image': image  # предполагаем, что image содержит ссылку на product и color
+    }
+
+    return render(request, 'product_card.html', context)
 
 
 @login_required
@@ -187,19 +218,7 @@ def create_order(request):
     return redirect('cart_detail')
 
 
-# получение размера
-def get_sizes(request):
-    product_id = request.GET.get('product_id')
-    color_id = request.GET.get('color_id')
-    # Здесь логика получения доступных размеров для товара и цвета
-    # Например:
-    try:
-        product_color = ProductVariation.objects.get(product_id = product_id, color_id = color_id)
-        sizes = product_color.size.all()
-        sizes_data = [{'id': size.id, 'name': size.name} for size in sizes]
-        return JsonResponse({'sizes': sizes_data})
-    except ProductVariation.DoesNotExist:
-        return JsonResponse({'sizes': []})
+
 
 
 

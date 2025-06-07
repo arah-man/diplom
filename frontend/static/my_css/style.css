@@ -1,14 +1,14 @@
 :root {
 	--two-color: rgb(207, 162, 84);
 	--main-color: rgb(240, 197, 123);
-	--main-font: "Playfair_Display"
+	--main-font: "Playfair Display"
 }
 @font-face {
-	font-family: "Alegreya_Sans";
+	font-family: "Alegreya Sans";
 	src: url(../font/alegreyasanssc/AlegreyaSansSC-Regular.ttf);
 }
 @font-face {
-	font-family: "Playfair_Display";
+	font-family: "Playfair Display";
 	src: url(../font/playfairdisplaysc/PlayfairDisplaySC-Regular.ttf);
 }
 html, body {
@@ -66,7 +66,7 @@ footer{
 .navbar{
   width: 100%;
   position: fixed;
-  z-index: 5;
+  z-index: 200;
   height: 122px;
 }
 .navbar, footer {
@@ -388,7 +388,7 @@ form > .form-row > button:hover {
   align-items: center;
   opacity: 0;
   transition: opacity 0.4s;
-  z-index: 2;
+  z-index: 30;
 }
 .card-wrapper:hover .plus-overlay {
   opacity: 1;
@@ -419,7 +419,7 @@ form > .form-row > button:hover {
   justify-content: center;
   box-sizing: border-box;
   transition: background 0.3s;
-  z-index: 3;
+  z-index: 20;
 }
 /* Название, описание, цена — всегда видимы, но при наведении легкая прозрачность */
 .product-title,
@@ -436,7 +436,6 @@ form > .form-row > button:hover {
 /* Детали — скрыты по умолчанию */
 .extra-details {
   position: absolute;
- /* top: 80px; /* поверх описания */
   left: 0;
   width: 100%;
   background: #fff;
@@ -445,7 +444,7 @@ form > .form-row > button:hover {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s;
-  z-index: 4;
+  z-index: 25;
   height: 100%;
 }
 .card-wrapper:hover .extra-details {
@@ -469,7 +468,23 @@ form > .form-row > button:hover {
   border-radius: 3px;
   border: 1px solid #ccc;
 }
-
+/* Подсветка выделенных цветов и размеров */
+.size-option.selected {
+  background: black;
+  color: white;
+  font-weight: bold;
+}
+.color-sample {
+  border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 5px;
+  cursor: pointer;
+}
+.color-sample.selected {
+  outline: 2px solid black;
+}
 /* Адаптивность */
 @media (min-width: 768px) {
   .image-holder {
@@ -892,3 +907,13 @@ form > .form-row > button:hover {
 
 
 
+.image-link {
+  display: block;
+  position: relative;
+  z-index: 10;
+}
+a, a:hover, a:visited {
+	color: black;
+	text-decoration: none;
+	transition: transform 0.2s;
+}

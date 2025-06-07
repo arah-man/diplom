@@ -3,35 +3,37 @@
 
 {% block title %}Каталог{% endblock %}
 
-{% block content %} 
+{% block content %}
 <h1 class="h1">Каталог</h1>
 
 <div class="products-container">
   {% for image in product_images %}
   <div class="card-wrapper">
     <!-- Фото -->
-    <div class="image-holder">
-      <div class="image-liquid">
-        <img src="{{ image.image.url }}" alt="{{ image.product.name }}">
-      </div>
+     <div class="image-holder">
+  <!-- Обернули только картинку ссылкой -->
+      <a href="{% url 'product_detail' image.product.id %}" class="image-link">
+        <div class="image-liquid">
+          <img src="{{ image.image.url }}" alt="{{ image.product.name }}">
+        </div>
+      </a>
+
+      <!-- Отдельно кнопка добавления в корзину -->
       <div class="plus-overlay">
-        <!-- Форма добавления в корзину -->
         <form method="post" action="{% url 'add_to_cart' %}" class="add-to-cart-form">
           {% csrf_token %}
           <input type="hidden" name="product_id" value="{{ image.product.id }}">
-          
-          <!-- Скрытые поля для выбранных атрибутов (можно сделать выпадающими) -->
-          <input type="hidden" name="color" value="{{ image.product.color.first.id }}">
-          <input type="hidden" name="size" value="{{ image.product.size.first.id }}">
+          <input type="hidden" name="color" value="{{ image.color.id }}">
+          <input type="hidden" name="size" class="selected-size" value="">
           <input type="hidden" name="quantity" value="1">
-          
           <button type="submit" class="plus-circle">
             <i class="fa-solid fa-basket-shopping fa"></i>
           </button>
         </form>
       </div>
     </div>
-    
+
+
     <!-- Описание -->
     <div class="product-description">
       <h5 class="product-title">{{ image.product.name }}</h5>
@@ -39,127 +41,152 @@
         <div class="col-xs-12 col-sm-8 category">{{ image.product.description|truncatechars:50 }}</div>
         <div class="col-xs-12 col-sm-4 price">{{ image.product.price }}₽</div>
       </div>
-      
-      <!-- Доп. детали - скрытые по умолчанию -->
+
       <div class="extra-details">
         <div class="sizes-wrapper">
           <p>Размеры</p>
-          {% for variation in image.product.productvariation_set.all %}
-            {% if variation.color.id == image.color.id %}
-              {% for size in variation.size.all %}
-                <span>{{ size.name }}</span>
-              {% endfor %}
-            {% endif %}
-          {% endfor %}
+          <div class="size-list">
+            {% for variation in image.product.productvariation_set.all %}
+              {% if variation.color.id == image.color.id %}
+                {% for size in variation.size.all %}
+                  <button type="button" class="size-option" data-size-id="{{ size.id }}">{{ size.name }}</button>
+                {% endfor %}
+              {% endif %}
+            {% endfor %}
+          </div>
         </div>
-        
+
         <div class="colors-wrapper">
           <p>Цвета</p>
           <div class="color-list">
             {% for variation in image.product.productvariation_set.all %}
-
-              <span class="color-sample" style="background-color: {{ variation.color.hex_code }};" 
-                  title="{{ variation.color.name }}" data-color-id="{{ variation.color.id }}"></span>
+              <button
+                type="button"
+                class="color-sample {% if variation.color.id == image.color.id %}selected{% endif %}"
+                style="background-color: {{ variation.color.hex_code }};"
+                data-color-id="{{ variation.color.id }}"
+                data-product-id="{{ image.product.id }}">
+              </button>
             {% endfor %}
           </div>
         </div>
-        
-        <!-- Альтернативная форма с выбором атрибутов 
-        <form method="post" action="{% url 'add_to_cart' %}" class="detailed-add-form">
-          {% csrf_token %}
-          <input type="hidden" name="product_id" value="{{ image.product.id }}">
-          
-          <div class="form-group">
-            <select name="size" class="form-control">
-              {% for size in image.product.size.all %}
-              <option value="{{ size.id }}">{{ size.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <select name="color" class="form-control">
-              {% for color in image.product.color.all %}
-              <option value="{{ color.id }}">{{ color.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <input type="number" name="quantity" value="1" min="1" class="form-control">
-          </div>
-          
-          <button type="submit" class="btn btn-primary">Добавить в корзину</button>
-        </form>-->
       </div>
     </div>
   </div>
   {% endfor %}
 </div>
 
-<style>
-  .extra-details {
-    display: none;
-    margin-top: 10px;
-  }
-  
-  .card-wrapper:hover .extra-details {
-    display: block;
-  }
-  
-  .color-sample {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    margin-right: 5px;
-    cursor: pointer;
-    border: 1px solid #ddd;
-  }
-  
-  .add-to-cart-form {
-    display: inline;
-  }
-  
-  .detailed-add-form {
-    margin-top: 10px;
-  }
-</style>
+<!-- Модальное окно -->
+<div class="modal fade" id="sizeModal" tabindex="-1" aria-labelledby="sizeModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sizeModalLabel">Выберите размер</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        <form id="sizeForm">
+            <div class="size-options" id="modal-sizes"></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <form>
+          <div class="form-row">
+              <button type="button" class="btn" id="confirmSize">Добавить в корзину</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
 
+{% block scripts %}
+{{ block.super }}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Обработка выбора цвета
-  document.querySelectorAll('.color-sample').forEach(color => {
-    color.addEventListener('click', function() {
-      const colorId = this.getAttribute('data-color-id');
-      const form = this.closest('.card-wrapper').querySelector('.add-to-cart-form');
-      form.querySelector('input[name="color"]').value = colorId;
-    });
+document.addEventListener("DOMContentLoaded", function () {
+  const sizeModal = document.getElementById("sizeModal");
+  const modalSizes = document.getElementById("modal-sizes");
+  const confirmBtn = document.getElementById("confirmSize");
+  let currentForm = null;
+
+  document.body.addEventListener("click", function (e) {
+    // ✅ Клик по размеру в карточке
+    if (e.target.classList.contains("size-option")) {
+      const btn = e.target;
+      const sizeList = btn.closest(".size-list");
+
+      // Только если клик был внутри карточки, а не в модалке
+      if (sizeList) {
+        sizeList.querySelectorAll(".size-option").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+
+        const form = btn.closest(".card-wrapper").querySelector("form.add-to-cart-form");
+        if (form) {
+          form.querySelector("input[name='size']").value = btn.dataset.sizeId;
+        }
+      }
+    }
+
+    // ✅ Клик по кнопке "добавить в корзину"
+    if (e.target.closest(".plus-circle")) {
+      const form = e.target.closest("form.add-to-cart-form");
+      const sizeInput = form.querySelector("input[name='size']");
+
+      // Если размер не выбран — открываем модалку
+      if (!sizeInput.value) {
+        e.preventDefault();
+        currentForm = form;
+
+        // Берём доступные размеры
+        const sizeButtons = form.closest(".card-wrapper").querySelectorAll(".size-option");
+        modalSizes.innerHTML = "";
+
+        sizeButtons.forEach(btn => {
+          const clone = btn.cloneNode(true);
+          clone.classList.remove("selected");
+          modalSizes.appendChild(clone);
+        });
+
+        const bsModal = new bootstrap.Modal(sizeModal);
+        bsModal.show();
+      }
+    }
+
+    // ✅ Клик по цвету
+    if (e.target.classList.contains("color-sample")) {
+      const card = e.target.closest(".card-wrapper");
+      const form = card.querySelector("form.add-to-cart-form");
+
+      // Подсветка выбранного цвета
+      card.querySelectorAll(".color-sample").forEach(b => b.classList.remove("selected"));
+      e.target.classList.add("selected");
+
+      // Сохраняем цвет в форму
+      form.querySelector("input[name='color']").value = e.target.dataset.colorId;
+    }
+
+    // ✅ Выбор размера в модалке
+    if (e.target.closest("#modal-sizes .size-option")) {
+      modalSizes.querySelectorAll(".size-option").forEach(b => b.classList.remove("selected"));
+      e.target.classList.add("selected");
+    }
   });
-  
-  // AJAX отправка формы
-  document.querySelectorAll('.add-to-cart-form').forEach(form => {
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      fetch(this.action, {
-        method: 'POST',
-        body: new FormData(this),
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Обновляем счетчик корзины
-          document.querySelector('.cart-count').textContent = data.total_items;
-          // Показываем уведомление
-          alert('Товар добавлен в корзину');
-        }
-      });
-    });
+
+  // ✅ Подтверждение размера из модалки
+  confirmBtn.addEventListener("click", function () {
+    const selected = modalSizes.querySelector(".size-option.selected");
+    if (!selected) return;
+
+    const sizeId = selected.dataset.sizeId;
+    currentForm.querySelector("input[name='size']").value = sizeId;
+
+    const bsModal = bootstrap.Modal.getInstance(sizeModal);
+    bsModal.hide();
+
+    currentForm.submit();
   });
 });
 </script>
+
 {% endblock %}
