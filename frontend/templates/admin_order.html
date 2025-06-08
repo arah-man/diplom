@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="profile-container">
+  <h1 class="profile-title">📦 Управление заказами</h1>
+
+  <!-- Форма фильтрации -->
+  <form method="get" class="row g-3 align-items-end mb-4">
+    <div class="col-md-3">
+      <label for="status" class="form-label">Фильтр по статусу:</label>
+      <select name="status" id="status" class="form-select">
+        <option value="">Все</option>
+        <option value="0">Новая</option>
+        <option value="1">В Обработке</option>
+        <option value="2">Принята</option>
+        <option value="3">Завершена</option>
+        <option value="4">Отменена</option>
+      </select>
+    </div>
+    <div class="col-md-auto">
+      <button type="submit" class="btn btn-outline-dark">Применить фильтр</button>
+    </div>
+  </form>
+
+  <!-- Список заказов -->
+  {% for order in orders %}
+    <div class="order-block mb-4 border p-3 rounded shadow-sm">
+      <div id="summary-block-{{ order.id }}">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <p><strong>Заказ №{{ order.id }}</strong> от {{ order.date_at|date:"d.m.Y" }}</p>
+            <p><strong>Пользователь:</strong> {{ order.user.username }}</p>
+            <p><strong>Статус:</strong> {{ order.get_status_display }}</p>
+          </div>
+          <div>
+            <button class="btn btn-sm btn-outline-dark" onclick="toggleDetails({{ order.id }})">Подробнее</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="details-block-{{ order.id }}" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <p><strong>ФИО:</strong>{{ user.last_name}} {{ user.first_name}} {{ user.third_name}}</p>
+            <p><strong>Контактные данные:</strong> {{ user.phone|default:"—" }}</p>            
+            <p><strong>Оплата:</strong> {{ order.get_type_payment_display }}</p>
+            <p><strong>Пункт выдачи:</strong> {{ order.address|default:"—" }}</p>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" onclick="toggleDetails({{ order.id }})">Скрыть</button>
+            <button class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#editModal-{{ order.id }}">
+              Изменить
+            </button>
+          </div>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Товар</th>
+              <th>Цвет</th>
+              <th>Размер</th>
+              <th>Кол-во</th>
+              <th>Цена</th>
+              <th>Итого</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in order.items.all %}
+              <tr>
+                <td>{{ item.product.name }}</td>
+                <td>
+                  {% if item.color %}
+                    <span class="color-circle" style="background-color: {{ item.color.hex_code }}"></span>
+                    {{ item.color.name }}
+                  {% else %}—{% endif %}
+                </td>
+                <td>{% if item.size %}{{ item.size.name }}{% else %}—{% endif %}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price }} ₽</td>
+                <td>{{ item.total_price }} ₽</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <p class="order-total">Общая сумма: <strong>{{ order.total_price }} ₽</strong></p>
+      </div>
+    </div>
+
+    <!-- Модальное окно для изменения статуса -->
+    <div class="modal fade" id="editModal-{{ order.id }}" tabindex="-1" aria-labelledby="editModalLabel-{{ order.id }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form method="post" action="{% url 'update_order_status' order.id %}">
+            {% csrf_token %}
+            <div class="modal-header">
+              <h5 class="modal-title" id="editModalLabel-{{ order.id }}">Изменение статуса заказа</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+              <label for="status-select-{{ order.id }}" class="form-label">Статус:</label>
+              <select name="status" id="status-select-{{ order.id }}" class="form-select">
+                {% for value, label in order.STATUS_CHOICES %}
+                  <option value="{{ value }}" {% if value == order.status %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+              <button type="submit" class="btn btn-dark">Сохранить</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+
+  {% if orders|length == 0 %}
+    <p class="text-muted">Нет заказов</p>
+  {% endif %}
+</div>
+
+<style>
+  .color-circle {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .order-total {
+    text-align: right;
+    font-weight: bold;
+  }
+</style>
+
+<script>
+  function toggleDetails(id) {
+    const summary = document.getElementById(`summary-block-${id}`);
+    const details = document.getElementById(`details-block-${id}`);
+    if (summary.style.display === 'none') {
+      summary.style.display = 'block';
+      details.style.display = 'none';
+    } else {
+      summary.style.display = 'none';
+      details.style.display = 'block';
+    }
+  }
+</script>
+{% endblock %}

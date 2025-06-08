@@ -275,44 +275,28 @@ def profile(request):
 
 
 
-@staff_member_required
-def admin_dashboard(request):
-    status_filter = request.GET.get("status", "")
+def admin_order(request):
+    status = request.GET.get('status')
     orders = Order.objects.all()
-    if status_filter:
-        orders = orders.filter(status=status_filter)
+    if status:
+        orders = orders.filter(status=status)
+    return render(request, 'admin_order.html', {'orders': orders})
 
-    return render(request, "admin_panel/dashboard.html", {
-        "orders": orders,
-        "products": Product.objects.all(),
-        "status_filter": status_filter,
-    })
+def admin_product(request):
+    products = Product.objects.all()
+    return render(request, 'admin_product.html', {'products': products})
 
 
-@staff_member_required
+@login_required
 def update_order_status(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    if request.method == "POST":
-        order.status = request.POST.get("status")
-        order.save()
-    return redirect("admin_dashboard")
 
-
-@staff_member_required
-def edit_product(request, product_id=None):
-    if product_id:
-        product = get_object_or_404(Product, id=product_id)
-    else:
-        product = None
-
-    form = ProductForm(request.POST or None, instance=product)
-    if form.is_valid():
-        form.save()
-        return redirect("admin_dashboard")
-
-    return render(request, "admin_panel/edit_product.html", {"form": form})
-
-
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        if new_status in dict(Order.STATUS_CHOICES):
+            order.status = new_status
+            order.save()
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
 

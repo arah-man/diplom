@@ -1134,3 +1134,32 @@ a, a:hover, a:visited {
     .status {
       font-weight: bold;
     }
+
+
+
+
+
+
+
+
+
+.btn-primary {
+      background-color: #d6a756;
+      border: none;
+    }
+    .btn-primary:hover {
+      background-color: #bd944d;
+    }
+    .card {
+      border: none;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+
+
+
+
+
+
+
+

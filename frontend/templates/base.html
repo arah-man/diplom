@@ -33,7 +33,8 @@
                         {% else %}
                             {% if user.is_superuser %}  
                                 <!--админка-->       
-                                <a class="fa-solid fa-user-tie fa active" href="#"></a>
+                                <a class="fa-solid fa-book  fa active" href="{%url 'admin_order'%}"></a>
+                                <a class="fa-solid fa-user-tie fa active" href="{%url 'admin_product'%}"></a>
                             {% else %}
                                 <!--избранное-->       
                                 <a class="fa-regular fa-heart fa active" href="#"></a>
