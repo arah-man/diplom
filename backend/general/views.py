@@ -31,11 +31,6 @@ def logout_view(request):
     logout(request)
     return redirect('index')
 
-
-from django.shortcuts import render
-from .models import ProductImage, ProductVariation
-
-
 def catalog(request):
     product_images = []
 
@@ -97,7 +92,6 @@ def add_to_cart(request):
 
         return JsonResponse({
             'success': True,
-            'redirect_url': product.get_absolute_url(),  # Перенаправляем на страницу товара
             'message': 'Товар добавлен в корзину',
             'cart_count': cart.total_items
 

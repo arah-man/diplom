@@ -1,36 +1,57 @@
 {% extends 'base.html' %}
-{%load static%}
+{% load static %}
 
-{% block title %} Страница авторизации {% endblock %}
+{% block title %}Страница авторизации{% endblock %}
 
-{% block content %} 
-  
+{% block content %}
+<!-- Основной контейнер с центрированием по вертикали и горизонтали -->
 <div class="d-flex justify-content-center align-items-center">
+  <!-- Обертка для формы авторизации -->
   <div class="contact-wrapper">
+    <!-- Блок для вывода ошибок авторизации -->
     {% if form.errors %}
       <div class="alert alert-danger" role="alert">
         Неверный логин или пароль. Попробуйте снова!
       </div>
     {% endif %}
+
+    <!-- Заголовок формы -->
     <header class="login-cta">
       <h2>Авторизоваться</h2>
     </header>
+
+    <!-- Форма авторизации -->
     <form method='post' action="{% url 'login' %}">
-      {% csrf_token %}
+      {% csrf_token %}  <!-- CSRF-токен для защиты формы -->
+      
+      <!-- Поле для ввода логина -->
       <div class="form-row">
-        <input type="text" name='username' class="form-control" placeholder="Username" required>
+        <input type="text" 
+               name='username' 
+               class="form-control" 
+               placeholder="Username" 
+               required>  <!-- Обязательное поле -->
       </div>
+      
+      <!-- Поле для ввода пароля -->
       <div class="form-row">
-        <input type="password" name='password' class="form-control" placeholder="Password" required>
+        <input type="password" 
+               name='password' 
+               class="form-control" 
+               placeholder="Password" 
+               required>  <!-- Обязательное поле -->
       </div>
+      
+      <!-- Кнопка отправки формы -->
       <div class="form-row">
         <button type="submit" class="btn">Войти!</button>
       </div>
+      
+      <!-- Кнопка перехода к регистрации  -->
       <div class="form-row">
-        <button type="submit" class="btn">Зарегестрироваться</button>
+        <a href="#" class="btn">Зарегистрироваться</a>
       </div>
     </form>
   </div>
 </div>
-
 {% endblock %}

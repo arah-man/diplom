@@ -1,46 +1,60 @@
 {% extends 'base.html' %}
-{%load static%}
+{% load static %}
 
-{% block title %} Главная страница {% endblock %}
+{% block title %}Главная страница{% endblock %}
 
-{% block content %} 
-
+{% block content %}
+<!-- Основная секция с предложением (hero section) -->
 <div class="offer">
     <div class="header_nazvanie">
-        <h2 class="header_logo"> Heart of Style</h2>
+        <!-- Логотип/название магазина -->
+        <h2 class="header_logo">Heart of Style</h2>
+        <!-- Слоган магазина -->
         <div class="header_devis">
             <p>выбирай</p>
             <p>сочетай</p>
             <p>сияй</p>
         </div>
-        <a href="{% url 'catalog'    %}" class="btn">
+        <!-- Кнопка перехода в каталог -->
+        <a href="{% url 'catalog' %}" class="btn">
             <p class="text_btn">К покупкам!</p>
         </a>
     </div>
 </div>
+
 <main>
     <section class="section">
-        <!-- CATALOG -->
-        <h1 class="h1">
-            Наши юбки
-        </h1>
+        <!-- Секция каталога юбок -->
+        <h1 class="h1">Наши юбки</h1>
 
+        <!-- Сетка товаров (используем Bootstrap grid) -->
         <div class="row row-cols-1 row-cols-md-2 g-4 catalog">
             {% for image in products %}
             <div class="col">
+                <!-- Карточка товара -->
                 <div class="card card__image-wrapper">
+                    <!-- Ссылка на страницу товара -->
                     <a href="{{ image.product.get_absolute_url }}">
+                        <!-- Изображение товара -->
                         <img src="{{image.image.url}}" class="card-img-top card_image" alt="{{ image.product.name }}">
                     </a>
+                    <!-- Тело карточки с информацией о товаре -->
                     <div class="card-body card__text">
+                        <!-- Название товара -->
                         <h5 class="card-title ubka_nazvanie dop-text">
                             <a href="{{ image.product.get_absolute_url }}">{{ image.product.name }}</a>
                         </h5>
+                        <!-- Описание товара -->
                         <p class="card-text card__text-description">{{ image.product.description }}</p>
+                        <!-- Блок с ценой и кнопками действий -->
                         <div class="sail">
+                            <!-- Цена товара -->
                             <p class="card__text-price">{{ image.product.price }}₽</p>
+                            <!-- Кнопки действий -->
                             <div class="card_sail">
+                                <!-- Кнопка "Добавить в избранное" -->
                                 <span class="fa-solid fa-heart" href="#"></span>
+                                <!-- Кнопка "Добавить в корзину" с data-атрибутами -->
                                 <a href="#" class="add-to-cart-link" 
                                    data-product-id="{{ image.product.id }}"
                                    {% if image.color %}data-color-id="{{ image.color.id }}"{% endif %}>
@@ -54,7 +68,7 @@
             {% endfor %}
         </div>
 
-        <!-- Модальное окно для выбора размера -->
+        <!-- Модальное окно для выбора размера (Bootstrap Modal) -->
         <div class="modal fade" id="sizeModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -63,13 +77,15 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
+                        <!-- Форма для выбора размера -->
                         <form id="sizeForm">
-                            <div class="size-options"></div>
+                            <div class="size-options"></div> <!-- Сюда будут добавляться варианты размеров -->
                         </form>
                     </div>
                     <div class="modal-footer">
                         <form>
                             <div class="form-row">
+                                <!-- Кнопка подтверждения выбора размера -->
                                 <button type="button" class="btn" id="confirmSize">Добавить в корзину</button>
                             </div>
                         </form>
@@ -78,6 +94,7 @@
             </div>
         </div>
 
+        <!-- Секция новостей -->
         <div class="news">
             <h1>Главные Новости</h1>
             <div class="content-block">
@@ -96,13 +113,13 @@
                         в цветную кожу с головы до ног: это может быть эффектный монохромный ансамбль 
                         изумрудного цвета, или комбо из лакированного жакета 
                         винного оттенка и микрошортов бежевого цвета. </p>
+                    <!-- Кнопка "Подробнее" -->
                     <a href="#" class="btn">
-                        <p class="text_btn">
-                            Подробнее
-                        </p>
+                        <p class="text_btn">Подробнее</p>
                     </a>
                 </div>
                 
+                <!-- Изображение для новости -->
                 <div class="image-content">
                     <img src="{%static 'img/news1111/news3.jpeg'%}" alt="Пример изображения">
                 </div>
@@ -116,11 +133,13 @@
 {{ block.super }}
 <script>
 $(document).ready(function() {
-    let currentProductId = null;
-    let currentColorId = null;
-    let $activeButton = null;
-    const sizeModal = new bootstrap.Modal(document.getElementById('sizeModal'));
+    // Переменные для хранения текущего состояния
+    let currentProductId = null;    // ID текущего товара
+    let currentColorId = null;      // ID текущего цвета (если есть)
+    let $activeButton = null;       // Активная кнопка "Добавить в корзину"
+    const sizeModal = new bootstrap.Modal(document.getElementById('sizeModal')); // Инициализация модального окна
 
+    // Функция для получения CSRF-токена из cookies
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -136,19 +155,24 @@ $(document).ready(function() {
         return cookieValue;
     }
 
+    // Обработчик клика по кнопке "Добавить в корзину"
     $('.add-to-cart-link').click(function(e) {
         e.preventDefault();
+        // Сохраняем данные о товаре
         currentProductId = $(this).data('product-id');
         currentColorId = $(this).data('color-id') || null;
-        $activeButton = $(this); // сохранили кнопку
+        $activeButton = $(this); // сохраняем ссылку на активную кнопку
 
+        // Меняем иконку на спиннер загрузки
         const $icon = $activeButton.find('span');
         $icon.removeClass('fa-basket-shopping').addClass('fa-spinner fa-spin');
 
+        // AJAX-запрос для получения доступных размеров
         $.get(`/get_sizes/?product_id=${currentProductId}${currentColorId ? `&color_id=${currentColorId}` : ''}`, function(data) {
             const $sizeOptions = $('.size-options');
             $sizeOptions.empty();
 
+            // Если есть размеры - показываем модальное окно для выбора
             if (data.sizes && data.sizes.length > 0) {
                 for (let size of data.sizes) {
                     $sizeOptions.append(`
@@ -160,16 +184,20 @@ $(document).ready(function() {
                 }
                 sizeModal.show();
             } else {
+                // Если размеров нет - сразу добавляем в корзину
                 addToCart(currentProductId, currentColorId, null, $activeButton);
             }
 
+            // Возвращаем стандартную иконку
             $icon.removeClass('fa-spinner fa-spin').addClass('fa-basket-shopping');
         }).fail(function() {
+            // В случае ошибки возвращаем стандартную иконку и показываем сообщение
             $activeButton.find('span').removeClass('fa-spinner fa-spin').addClass('fa-basket-shopping');
             alert('Ошибка загрузки размеров.');
         });
     });
 
+    // Обработчик клика по кнопке подтверждения выбора размера
     $('#confirmSize').click(function() {
         const sizeId = $('input[name="size"]:checked').val();
         if (!sizeId) {
@@ -177,46 +205,53 @@ $(document).ready(function() {
             return;
         }
 
+        // Добавляем товар с выбранным размером в корзину
         addToCart(currentProductId, currentColorId, sizeId, $activeButton);
         sizeModal.hide();
     });
 
+    // Функция добавления товара в корзину
     function addToCart(productId, colorId, sizeId, $button) {
         const csrftoken = getCookie('csrftoken');
         const $icon = $button.find('span');
 
+        // Меняем иконку на спиннер
         $icon.removeClass('fa-basket-shopping').addClass('fa-spinner fa-spin');
 
+        // Отправляем AJAX-запрос на сервер
         $.ajax({
             url: '{% url "add_to_cart" %}',
             type: 'POST',
-            headers: {'X-CSRFToken': csrftoken},
+            headers: {'X-CSRFToken': csrftoken}, // CSRF-защита
             data: {
                 'product_id': productId,
                 'color': colorId,
                 'size': sizeId
             },
             success: function(data) {
+                // При успехе меняем иконку на "галочку" на 1 секунду
                 $icon.removeClass('fa-spinner fa-spin').addClass('fa-check');
                 setTimeout(() => {
                     $icon.removeClass('fa-check').addClass('fa-basket-shopping');
                 }, 1000);
 
+                // Обновляем счетчик товаров в корзине (если есть в ответе)
                 if (data.cart_count !== undefined) {
                     $('.cart-count').text(data.cart_count);
                 }
 
+                // Если сервер вернул ошибку - показываем сообщение
                 if (!data.success) {
                     alert(data.message || 'Ошибка добавления в корзину');
                 }
             },
             error: function(xhr) {
+                // При ошибке возвращаем стандартную иконку и показываем сообщение
                 $icon.removeClass('fa-spinner fa-spin').addClass('fa-basket-shopping');
                 alert(xhr.responseJSON?.message || 'Ошибка на сервере при добавлении в корзину');
             }
         });
     }
 });
-
 </script>
 {% endblock %}

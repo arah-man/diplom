@@ -1,65 +1,88 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}Оформление заказа{% endblock %}
+
 {% block content %}
+<!-- Основной контейнер с центрированием содержимого -->
 <div class="d-flex justify-content-center align-items-center">
+    <!-- Карточка с тенью и ограничением максимальной ширины -->
     <div class="card shadow p-4 w-100" style="max-width: 700px;">
         <div class="card-body p-4">
+            <!-- Заголовок страницы -->
             <h2 class="mb-4 text-center">Оформление заказа</h2>
 
+            <!-- Форма для оформления заказа с отключенной браузерной валидацией -->
             <form method="post" novalidate>
-                {% csrf_token %}
+                {% csrf_token %}  <!-- CSRF-токен для защиты от подделки запросов -->
 
+                <!-- Блок для вывода системных сообщений -->
                 {% if messages %}
                     {% for message in messages %}
+                        <!-- Каждое сообщение выводится как alert с желтым фоном -->
                         <div class="alert alert-warning">{{ message }}</div>
                     {% endfor %}
                 {% endif %}
 
-                <!-- Адрес (Select) -->
+                <!-- Секция выбора адреса доставки -->
                 <div class="mb-3">
+                    <!-- Лейбл для поля адреса -->
                     <label for="{{ form.address.id_for_label }}" class="form-label">{{ form.address.label }}</label>
+                    <!-- Поле выбора адреса (рендерится Django-формой) -->
                     {{ form.address }}
+                    <!-- Вывод ошибок валидации для поля адреса -->
                     {% if form.address.errors %}
                         <div class="text-danger small">{{ form.address.errors.as_text }}</div>
                     {% endif %}
                 </div>
 
-                <!-- Способ оплаты (RadioSelect кастомизирован) -->
+                <!-- Секция выбора способа оплаты -->
                 <div class="mb-3">
+                    <!-- Лейбл для способа оплаты -->
                     <label class="form-label">{{ form.type_payment.label }}</label>
+                    <!-- Рендеринг radio-кнопок для выбора способа оплаты -->
                     {% for radio in form.type_payment %}
                         <div class="form-check">
-                            {{ radio.tag }}
+                            {{ radio.tag }}  <!-- Сама radio-кнопка -->
+                            <!-- Лейбл для radio-кнопки -->
                             <label class="form-check-label" for="{{ radio.id_for_label }}">
                                 {{ radio.choice_label }}
                             </label>
                         </div>
                     {% endfor %}
+                    <!-- Вывод ошибок валидации для способа оплаты -->
                     {% if form.type_payment.errors %}
                         <div class="text-danger small">{{ form.type_payment.errors.as_text }}</div>
                     {% endif %}
                 </div>
 
+                <!-- Секция с перечнем выбранных товаров -->
                 <h4 class="mt-4">Выбранные товары</h4>
+                <!-- Список товаров в заказе -->
                 <ul class="list-group mb-3">
                     {% for item in selected_items %}
+                        <!-- Каждый товар в отдельном элементе списка -->
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
+                                <!-- Название товара -->
                                 <strong>{{ item.product.name }}</strong>
+                                <!-- Дополнительная информация: цвет, размер, количество -->
                                 <div class="small text-muted">
                                     {% if item.color %}Цвет: {{ item.color.name }} {% endif %}
                                     {% if item.size %}| Размер: {{ item.size.name }}{% endif %}
                                     | Кол-во: {{ item.quantity }}
                                 </div>
                             </div>
+                            <!-- Цена товара с учетом количества -->
                             <span>{{ item.total_price }} ₽</span>
                         </li>
                     {% endfor %}
                 </ul>
 
+                <!-- Блок с итоговой суммой заказа -->
                 <div class="text-end fw-bold mb-3">Итого: {{ total_price }} ₽</div>
 
+                <!-- Кнопка отправки формы -->
                 <div class="form-row text-center">
                     <button type="submit" class="btn btn-dark btn-lg px-5" id="checkout-btn">Оформить заказ</button>
                 </div>

@@ -10,30 +10,30 @@
   {% for entry in product_images %}
   {% with image=entry.image product=entry.product color=entry.color sizes=entry.sizes %}
   <div class="card-wrapper">
-    <!-- Фото -->
     <div class="image-holder">
+      <!-- Ссылка на страницу товара -->
       <a href="{% url 'product_detail' product.id %}" class="image-link">
         <div class="image-liquid">
           <img src="{{ image.image.url }}" alt="{{ product.name }}">
         </div>
       </a>
 
-      <!-- Кнопка корзины -->
+      <!-- Кнопка добавления в корзину -->
       <div class="plus-overlay">
-        <form method="post" action="{% url 'add_to_cart' %}" class="add-to-cart-form">
+        <form class="add-to-cart-form">
           {% csrf_token %}
           <input type="hidden" name="product_id" value="{{ product.id }}">
           <input type="hidden" name="color" value="{{ color.id }}">
           <input type="hidden" name="size" class="selected-size" value="">
           <input type="hidden" name="quantity" value="1">
-          <button type="submit" class="plus-circle">
+          <button type="button" class="plus-circle add-to-cart-button" data-url="{% url 'add_to_cart' %}">
             <i class="fa-solid fa-basket-shopping fa"></i>
           </button>
         </form>
       </div>
     </div>
 
-    <!-- Описание -->
+    <!-- Информация о товаре -->
     <div class="product-description">
       <h5 class="product-title">{{ product.name }}</h5>
       <div class="row">
@@ -41,6 +41,7 @@
         <div class="col-xs-12 col-sm-4 price">{{ product.price }}₽</div>
       </div>
 
+      <!-- Дополнительные детали (размеры и цвета) -->
       <div class="extra-details">
         <div class="sizes-wrapper">
           <p>Размеры</p>
@@ -72,7 +73,7 @@
   {% endfor %}
 </div>
 
-<!-- Модальное окно выбора размера -->
+<!-- Модальное окно для выбора размера (показывается, если размер не выбран) -->
 <div class="modal fade" id="sizeModal" tabindex="-1" aria-labelledby="sizeModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -81,16 +82,10 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
       </div>
       <div class="modal-body">
-        <form id="sizeForm">
-            <div class="size-options" id="modal-sizes"></div>
-        </form>
+        <div id="modal-sizes" class="size-options"></div>
       </div>
       <div class="modal-footer">
-        <form>
-          <div class="form-row">
-              <button type="button" class="btn" id="confirmSize">Добавить в корзину</button>
-          </div>
-        </form>
+        <button type="button" class="btn btn-primary" id="confirmSize">Добавить в корзину</button>
       </div>
     </div>
   </div>
@@ -101,18 +96,24 @@
 {{ block.super }}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+  // Элементы модального окна
   const sizeModal = document.getElementById("sizeModal");
   const modalSizes = document.getElementById("modal-sizes");
   const confirmBtn = document.getElementById("confirmSize");
-  let currentForm = null;
+  let currentForm = null; // Текущая форма, которая будет отправлена после выбора размера
 
-  document.body.addEventListener("click", function (e) {
+  // Обработчик кликов по документу
+  document.body.addEventListener("click", async function (e) {
+    // Выбор размера в карточке товара
     if (e.target.classList.contains("size-option")) {
       const btn = e.target;
       const sizeList = btn.closest(".size-list");
       if (sizeList) {
+        // Снимаем выделение со всех кнопок в этой группе
         sizeList.querySelectorAll(".size-option").forEach(b => b.classList.remove("selected"));
+        // Выделяем текущую кнопку
         btn.classList.add("selected");
+        // Обновляем значение в форме
         const form = btn.closest(".card-wrapper").querySelector("form.add-to-cart-form");
         if (form) {
           form.querySelector("input[name='size']").value = btn.dataset.sizeId;
@@ -120,46 +121,108 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
-    if (e.target.closest(".plus-circle")) {
-      const form = e.target.closest("form.add-to-cart-form");
-      const sizeInput = form.querySelector("input[name='size']");
-      if (!sizeInput.value) {
+    // Выбор цвета в карточке товара
+    if (e.target.classList.contains("color-sample")) {
+      const card = e.target.closest(".card-wrapper");
+      const form = card.querySelector("form.add-to-cart-form");
+      // Снимаем выделение со всех цветов
+      card.querySelectorAll(".color-sample").forEach(b => b.classList.remove("selected"));
+      // Выделяем текущий цвет
+      e.target.classList.add("selected");
+      // Обновляем значение в форме
+      form.querySelector("input[name='color']").value = e.target.dataset.colorId;
+    }
+
+    // Нажатие кнопки "Добавить в корзину"
+    if (e.target.closest(".add-to-cart-button")) {
+      const button = e.target.closest(".add-to-cart-button");
+      const form = button.closest("form.add-to-cart-form");
+      const url = button.dataset.url;
+
+      const size = form.querySelector("input[name='size']").value;
+      const product_id = form.querySelector("input[name='product_id']").value;
+      const color = form.querySelector("input[name='color']").value;
+      const quantity = form.querySelector("input[name='quantity']").value;
+      const csrf = form.querySelector("input[name='csrfmiddlewaretoken']").value;
+
+      // Если размер не выбран, показываем модальное окно
+      if (!size) {
         e.preventDefault();
         currentForm = form;
         const sizeButtons = form.closest(".card-wrapper").querySelectorAll(".size-option");
         modalSizes.innerHTML = "";
+        // Копируем кнопки размеров в модальное окно
         sizeButtons.forEach(btn => {
           const clone = btn.cloneNode(true);
           clone.classList.remove("selected");
+          clone.classList.add("size-option");
+          clone.setAttribute("data-size-id", btn.dataset.sizeId);
           modalSizes.appendChild(clone);
         });
+        // Показываем модальное окно
         const bsModal = new bootstrap.Modal(sizeModal);
         bsModal.show();
+        return;
+      }
+
+      // Отправка данных на сервер
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrf,
+          },
+          body: new URLSearchParams({
+            product_id,
+            color,
+            size,
+            quantity
+          }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          // Анимация иконки корзины
+          const cartIcon = document.querySelector(".cart-icon");
+          if (cartIcon) {
+            cartIcon.classList.add("cart-bounce");
+            setTimeout(() => cartIcon.classList.remove("cart-bounce"), 500);
+          }
+
+          // Обновление счетчика товаров
+          const cartCount = document.querySelector("#cart-count");
+          if (cartCount && data.cart_count !== undefined) {
+            cartCount.textContent = data.cart_count;
+          }
+        } else {
+          console.error("Ошибка при добавлении:", data.error);
+        }
+      } catch (err) {
+        alert("Ошибка при добавлении товара");
+        console.error(err);
       }
     }
 
-    if (e.target.classList.contains("color-sample")) {
-      const card = e.target.closest(".card-wrapper");
-      const form = card.querySelector("form.add-to-cart-form");
-      card.querySelectorAll(".color-sample").forEach(b => b.classList.remove("selected"));
-      e.target.classList.add("selected");
-      form.querySelector("input[name='color']").value = e.target.dataset.colorId;
-    }
-
+    // Выбор размера в модальном окне
     if (e.target.closest("#modal-sizes .size-option")) {
       modalSizes.querySelectorAll(".size-option").forEach(b => b.classList.remove("selected"));
       e.target.classList.add("selected");
     }
   });
 
+  // Подтверждение выбора размера в модальном окне
   confirmBtn.addEventListener("click", function () {
     const selected = modalSizes.querySelector(".size-option.selected");
     if (!selected) return;
     const sizeId = selected.dataset.sizeId;
+    // Устанавливаем выбранный размер в форме
     currentForm.querySelector("input[name='size']").value = sizeId;
+    // Закрываем модальное окно
     const bsModal = bootstrap.Modal.getInstance(sizeModal);
     bsModal.hide();
-    currentForm.submit();
+    // Имитируем клик по кнопке "Добавить в корзину"
+    currentForm.querySelector(".add-to-cart-button").click();
   });
 });
 </script>

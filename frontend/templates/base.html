@@ -1,81 +1,93 @@
-{%load static%}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
-    <head>        
-        <link rel="stylesheet" href="{%static 'my_css/font_awesome.css'%}">
-        <link rel="stylesheet" href="{%static 'bootstrap.min.css'%}">
-        <link rel="stylesheet" href="{% static 'my_css/style.css' %}">
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %} {% endblock %}</title>
-    </head>
-    <body class="d-flex flex-column min-vh-100">
-        <nav class="navbar navbar-expand-lg bg-body-tertiary">
-            <div class="container-fluid">
-                <img src="{%static 'img/logo.png'%}" alt="" class="logo">
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="{% url "index" %}">Главная</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="{% url "catalog" %}">Каталог</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="#">Новости</a>
-                        </li>
-                    </ul>
+<head>
+    <!-- Подключение CSS файлов -->
+    <link rel="stylesheet" href="{% static 'my_css/font_awesome.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'my_css/style.css' %}">
 
-                    <form class="d-flex" role="search">
-                        {% if not user.is_authenticated %}
-                            <!--вход-->
-                            <a class="fa-solid fa-right-to-bracket fa active" href="{% url "login" %}"></a>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Блок для заголовка страницы -->
+    <title>{% block title %}Магазин{% endblock %}</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Навигационная панель -->
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <!-- Логотип -->
+            <img src="{% static 'img/logo.png' %}" alt="Логотип" class="logo">
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <!-- Основные ссылки меню -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'index' %}">Главная</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'catalog' %}">Каталог</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Новости</a>
+                    </li>
+                </ul>
+
+                <!-- Иконки пользователя -->
+                <form class="d-flex" role="search">
+                    {% if not user.is_authenticated %}
+                        <!-- Ссылка на вход -->
+                        <a class="fa-solid fa-right-to-bracket fa active" href="{% url 'login' %}" title="Войти"></a>
+                    {% else %}
+                        {% if user.is_superuser %}
+                            <!-- Админ-панель -->
+                            <a class="fa-solid fa-book fa active" href="{% url 'admin_order' %}" title="Заказы (админ)"></a>
+                            <a class="fa-solid fa-user-tie fa active" href="{% url 'admin_product' %}" title="Продукты (админ)"></a>
                         {% else %}
-                            {% if user.is_superuser %}  
-                                <!--админка-->       
-                                <a class="fa-solid fa-book  fa active" href="{%url 'admin_order'%}"></a>
-                                <a class="fa-solid fa-user-tie fa active" href="{%url 'admin_product'%}"></a>
-                            {% else %}
-                                <!--избранное-->       
-                                <a class="fa-regular fa-heart fa active" href="#"></a>
-                                <!--корзина-->
-                                <a href="{% url 'cart_detail' %}" class="fa-solid fa-basket-shopping fa active">
-                                    (<span class="cart-counter">{{ request.user.cart.total_items|default:0 }}</span>)
-                                </a>
-                                <!--<a class="fa-solid fa-basket-shopping fa active" href="{% url 'cart_detail' %}"></a>-->
-                                <!--личный кабинет-->           
-                                <a class="fa-solid fa-user fa active" href="{% url 'profile' %}"></a>
-                            {% endif %}
-                            <!--выход-->
-                            <a class="fa-solid fa-right-from-bracket fa active" href="{% url "logout" %}"></a>
+                            <!-- Избранное -->
+                            <a class="fa-regular fa-heart fa active" href="#" title="Избранное"></a>
+                            <!-- Корзина -->
+                            <a href="{% url 'cart_detail' %}" class="fa-solid fa-basket-shopping fa active" title="Корзина">
+                                (<span class="cart-counter">{{ request.user.cart.total_items|default:0 }}</span>)
+                            </a>
+                            <!-- Профиль -->
+                            <a class="fa-solid fa-user fa active" href="{% url 'profile' %}" title="Профиль"></a>
                         {% endif %}
-                    </form>
-                </div>
+                        <!-- Выход -->
+                        <a class="fa-solid fa-right-from-bracket fa active" href="{% url 'logout' %}" title="Выйти"></a>
+                    {% endif %}
+                </form>
             </div>
-        </nav>
+        </div>
+    </nav>
 
-        <div class="container flex-grow-1 ">
-        {% block content %} {% endblock %}
+    <!-- Контентная часть страницы -->
+    <div class="container flex-grow-1">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Футер -->
+    <footer class="text-center py-3">
+        <div class="footer center">
+            <!-- Социальные и контактные иконки -->
+            <a href="#" class="me-3 fa-solid fa-phone fa active" title="Позвонить"></a>
+            <a href="#" class="me-3 fa-brands fa-vk fa active" title="VK"></a>
+            <a href="#" class="me-3 fa-brands fa-square-instagram fa active" title="Instagram"></a>
+            <a href="#" class="me-3 fa-brands fa-square-whatsapp fa active" title="WhatsApp"></a>
         </div>
 
-        <footer class=" text-center py-3 ">
-           <div class="footer center">
-                <a href="#" class="me-3 fa-solid fa-phone fa active"></a>
-                <a href="#" class="me-3 fa-brands fa-vk fa active"></a>
-                <a href="#" class="me-3 fa-brands fa-square-instagram fa active"></a>
-                <a href="#" class="me-3 fa-brands fa-square-whatsapp fa active"></a>
-           </div>
+        <!-- Форма подписки -->
+        <form>
+            <input type="email" placeholder="Введите ваш email">
+            <button type="submit">Подписаться</button>
+        </form>
+    </footer>
 
-            <form>
-                <input type="email" placeholder="Введите ваш email">
-                <button type="submit">Подписаться</button>
-            </form>
-        </footer>
-
-        {% block scripts %}
-            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        {% endblock %}
-        
-    </body>
+    <!-- Подключение скриптов -->
+    {% block scripts %}
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% endblock %}
+</body>
 </html>
