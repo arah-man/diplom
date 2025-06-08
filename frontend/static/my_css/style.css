@@ -754,6 +754,203 @@ a, a:hover, a:visited {
     color: white;
 }
 
+/*профиль*/
+    .user-info {
+      background-color: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 25px 30px;
+      margin-bottom: 40px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .user-info h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .user-info div {
+      margin-bottom: 10px;
+      font-size: 15px;
+    }
+
+    .order-card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 20px 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border);
+    }
+
+    .order-header {
+      margin-bottom: 20px;
+    }
+
+    .order-header strong {
+      font-size: 16px;
+    }
+
+    .order-header small {
+      color: var(--text-light);
+      font-size: 13px;
+      display: block;
+    }
+
+    .order-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .order-table th, .order-table td {
+      padding: 12px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .order-table th {
+      background-color: #fafafa;
+      font-weight: 600;
+    }
+
+    .color-dot {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      margin-right: 6px;
+      border: 1px solid #ccc;
+      vertical-align: middle;
+    }
+
+    .order-total {
+      text-align: right;
+      font-weight: bold;
+      padding-top: 15px;
+      font-size: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .order-table, .order-table thead, .order-table tbody, .order-table th, .order-table td, .order-table tr {
+        display: block;
+      }
+
+      .order-table th {
+        display: none;
+      }
+
+      .order-table td {
+        position: relative;
+        padding-left: 50%;
+      }
+
+      .order-table td::before {
+        position: absolute;
+        top: 12px;
+        left: 10px;
+        width: 45%;
+        white-space: nowrap;
+        font-weight: 600;
+        content: attr(data-label);
+        color: var(--text-light);
+      }
+
+      .order-total {
+        text-align: left;
+        margin-top: 10px;
+      }
+    }
+.profile-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: 'Helvetica Neue', sans-serif;
+}
+
+.profile-title {
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+
+.user-info {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 15px 20px;
+  background: #fafafa;
+  margin-bottom: 30px;
+}
+
+.user-info summary {
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.user-info[open] summary::after {
+  content: " ▲";
+}
+.user-info summary::after {
+  content: " ▼";
+}
+
+.user-info-content {
+  margin-top: 15px;
+  line-height: 1.6;
+}
+
+.order-history-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin: 20px 0;
+}
+
+.order-block {
+  background: #fff;
+  border: 1px solid #eee;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+}
+
+.order-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.order-table th,
+.order-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.order-table th {
+  background-color: #f4f4f4;
+  font-weight: 600;
+}
+
+.color-circle {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 5px;
+  border: 1px solid #ccc;
+  vertical-align: middle;
+}
+
+.order-total {
+  text-align: right;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
 
 
 
@@ -831,7 +1028,6 @@ a, a:hover, a:visited {
 
 
 
-/* корзина */
 
 
 
@@ -859,7 +1055,6 @@ a, a:hover, a:visited {
 
 
 
-/*индекс для корзины*/
 
 
 
@@ -916,6 +1111,26 @@ a, a:hover, a:visited {
 
 
 
-
-
-
+.card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    select, button, input {
+      padding: 6px 12px;
+      margin-top: 5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    td, th {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .status {
+      font-weight: bold;
+    }

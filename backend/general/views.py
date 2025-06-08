@@ -5,8 +5,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 
-from general.forms import OrderForm
+from general.forms import OrderForm, ProductForm
 from general.models import Product, Color, Size, ProductImage, Order, Cart, CartItem, ProductVariation, OrderItem
 
 
@@ -190,6 +191,8 @@ def create_order(request):
                 OrderItem.objects.create(
                     order=order,
                     product=item.product,
+                    color=item.color,
+                    size=item.size,
                     quantity=item.quantity,
                     price=item.product.price
                 )
@@ -220,9 +223,94 @@ def proceed_to_order(request):
         return redirect("create_order")  # URL на create_order_view
     return redirect("cart")
 
+# изменения в корзине
+@login_required
+def remove_from_cart(request, item_id):
+    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+    cart_item.delete()
+    return redirect('cart_view')
+
+
+@login_required
+def update_cart_item(request, item_id):
+    if request.method == 'POST':
+        cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+        quantity = int(request.POST.get('quantity', 1))
+
+        if quantity > 0:
+            cart_item.quantity = quantity
+            cart_item.save()
+        else:
+            cart_item.delete()
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            cart = cart_item.cart
+            return JsonResponse({
+                'success': True,
+                'cart_total': cart.total_items,
+                'item_total': cart_item.total_price,
+                'cart_total_price': cart.total_price
+            })
+
+# успешный заказ
 def order_success(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     return render(request, "order_success.html", {"order": order})
+
+# профиль пользователя
+def profile(request):
+    orders = Order.objects.filter(user=request.user).prefetch_related(
+        'items__product', 'items__color', 'items__size'
+    ).select_related('address')
+
+    return render(request, 'profile.html', {
+        'orders': orders,
+    })
+
+
+
+
+
+
+
+
+
+@staff_member_required
+def admin_dashboard(request):
+    status_filter = request.GET.get("status", "")
+    orders = Order.objects.all()
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+
+    return render(request, "admin_panel/dashboard.html", {
+        "orders": orders,
+        "products": Product.objects.all(),
+        "status_filter": status_filter,
+    })
+
+
+@staff_member_required
+def update_order_status(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    if request.method == "POST":
+        order.status = request.POST.get("status")
+        order.save()
+    return redirect("admin_dashboard")
+
+
+@staff_member_required
+def edit_product(request, product_id=None):
+    if product_id:
+        product = get_object_or_404(Product, id=product_id)
+    else:
+        product = None
+
+    form = ProductForm(request.POST or None, instance=product)
+    if form.is_valid():
+        form.save()
+        return redirect("admin_dashboard")
+
+    return render(request, "admin_panel/edit_product.html", {"form": form})
 
 
 

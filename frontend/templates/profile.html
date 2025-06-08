@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="profile-container">
+  <h1 class="profile-title">ВАШ ПРОФИЛЬ</h1>
+
+  <!-- Личная информация -->
+  <details class="user-info">
+    <summary>👤 Личная информация</summary>
+    <div class="user-info-content">
+      <p><strong>Имя:</strong> {{ user.first_name }}</p>
+      <p><strong>Фамилия:</strong> {{ user.last_name }}</p>
+      <p><strong>Отчество:</strong> {{ user.middle_name|default:"—" }}</p>
+      <p><strong>Телефон:</strong> {{ user.phone|default:"—" }}</p>
+      <p><strong>Почта:</strong> {{ user.email }}</p>
+      <p><strong>День рождения:</strong> {{ user.birth_date|date:"d.m.Y" }}</p>
+    </div>
+  </details>
+
+  <!-- История заказов -->
+  <h2 class="order-history-title">История заказов</h2>
+  {% for order in orders %}
+    <div class="order-block">
+      <p><strong>Заказ №{{ order.id }}</strong> от {{ order.date_at|date:"d.m.Y" }}</p>
+      <p><strong>Статус:</strong> {{ order.get_status_display }}</p>
+      <p><strong>Оплата:</strong> {{ order.get_type_payment_display }}</p>
+      <p><strong>Пункт выдачи:</strong> {{ order.address|default:"—" }}</p>
+
+      <table class="order-table">
+        <thead>
+          <tr>
+            <th>Товар</th>
+            <th>Цвет</th>
+            <th>Размер</th>
+            <th>Кол-во</th>
+            <th>Цена</th>
+            <th>Итого</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in order.items.all %}
+            <tr>
+              <td>{{ item.product.name }}</td>
+              <td>
+                {% if item.color %}
+                  <span class="color-circle" style="background-color: {{ item.color.hex_code }}"></span>
+                  {{ item.color.name }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>
+                {% if item.size %}
+                  {{ item.size.name }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ item.price }} ₽</td>
+              <td>{{ item.total_price }} ₽</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p class="order-total">Общая сумма: <strong>{{ order.total_price }} ₽</strong></p>
+    </div>
+  {% empty %}
+    <p>У вас пока нет заказов.</p>
+  {% endfor %}
+</div>
+{% endblock %}

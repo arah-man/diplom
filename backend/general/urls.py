@@ -2,14 +2,14 @@ from tkinter.font import names
 from django.urls import path
 from django.contrib.auth import views as auth_views
 
-from general.views import index, catalog, logout_view, cart_view, add_to_cart, remove_from_cart, update_cart_item, product_detail, cart_detail, create_order, get_sizes, switch_color, order_success, proceed_to_order
+from general.views import index, catalog, logout_view, cart_view, add_to_cart, remove_from_cart, update_cart_item, product_detail, cart_detail, create_order, get_sizes, switch_color, order_success, proceed_to_order, profile
 urlpatterns = [
     path('', index, name = 'index'),
     path('catalog/', catalog, name='catalog'),
     path("accounts/login/", auth_views.LoginView.as_view(template_name="login.html"), name='login'),
     path('logout/', logout_view, name='logout'),
 
-
+    path('profile/', profile, name='profile'),
 
     path('cart/', cart_view, name='cart_view'),
     path('add_to_cart/', add_to_cart, name='add_to_cart'),

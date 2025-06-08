@@ -1,5 +1,6 @@
 from django import forms
-from .models import Order, PickupPoint
+from .models import Order, PickupPoint, Product
+
 
 class OrderForm(forms.ModelForm):
     class Meta:
@@ -21,3 +22,9 @@ class OrderForm(forms.ModelForm):
         self.fields['type_payment'].required = True
         self.fields['type_payment'].label = "Способ оплаты"
         self.fields['type_payment'].widget.attrs.update({'class': 'form-check-input'})
+
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ['name', 'description', 'price']
