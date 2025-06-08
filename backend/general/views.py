@@ -7,7 +7,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 
-from general.forms import OrderForm, ProductForm
+from general.forms import OrderForm, ProductForm, ProductVariationForm
 from general.models import Product, Color, Size, ProductImage, Order, Cart, CartItem, ProductVariation, OrderItem
 
 
@@ -31,26 +31,41 @@ def logout_view(request):
     logout(request)
     return redirect('index')
 
+
+from django.shortcuts import render
+from .models import ProductImage, ProductVariation
+
+
 def catalog(request):
-    # Получаем последние изображения для каждой комбинации продукт+цвет
-    latest_images = (
-        ProductImage.objects
-        .values('product', 'color')
-        .annotate(latest_image_id=Max('id'))
-        .values_list('latest_image_id', flat=True)
-    )
+    product_images = []
 
-    # Загружаем объекты изображений с продуктами и цветами
-    product_images = (
-        ProductImage.objects
-        .filter(id__in=latest_images)
-        .select_related('product', 'color')  # этого достаточно
-    )
+    images = ProductImage.objects.select_related('product', 'color')
 
-    context = {
+    for image in images:
+        # Получаем все вариации с тем же продуктом и цветом
+        variations = ProductVariation.objects.filter(product=image.product, color=image.color).prefetch_related('size')
+
+        # Собираем размеры
+        sizes = set()
+        for var in variations:
+            sizes.update(var.size.all())
+
+        # Собираем все цвета для этого продукта
+        all_variations = ProductVariation.objects.filter(product=image.product).select_related('color')
+        color_set = set(v.color for v in all_variations)
+
+        product_images.append({
+            'product': image.product,
+            'image': image,
+            'color': image.color,
+            'sizes': sorted(sizes, key=lambda s: s.name),
+            'colors': sorted(color_set, key=lambda c: c.name),
+        })
+
+    return render(request, 'catalog.html', {
         'product_images': product_images
-    }
-    return render(request, "catalog.html", context)
+    })
+
 
 # корзина
 # добавление в корзину
@@ -228,7 +243,7 @@ def proceed_to_order(request):
 def remove_from_cart(request, item_id):
     cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
     cart_item.delete()
-    return redirect('cart_view')
+    return redirect('cart')
 
 
 @login_required
@@ -261,7 +276,7 @@ def order_success(request, order_id):
 def profile(request):
     orders = Order.objects.filter(user=request.user).prefetch_related(
         'items__product', 'items__color', 'items__size'
-    ).select_related('address')
+    ).select_related('address').order_by('-date_at')
 
     return render(request, 'profile.html', {
         'orders': orders,
@@ -275,17 +290,14 @@ def profile(request):
 
 
 
+
+
 def admin_order(request):
     status = request.GET.get('status')
-    orders = Order.objects.all()
+    orders = Order.objects.all().order_by('-date_at')
     if status:
         orders = orders.filter(status=status)
     return render(request, 'admin_order.html', {'orders': orders})
-
-def admin_product(request):
-    products = Product.objects.all()
-    return render(request, 'admin_product.html', {'products': products})
-
 
 @login_required
 def update_order_status(request, order_id):
@@ -293,19 +305,140 @@ def update_order_status(request, order_id):
 
     if request.method == 'POST':
         new_status = request.POST.get('status')
+        cancel_reason = request.POST.get('cancel_reason', '').strip()
+
         if new_status in dict(Order.STATUS_CHOICES):
             order.status = new_status
+
+            if new_status == '4':
+                if not cancel_reason:
+                    messages.error(request, "Пожалуйста, укажите причину отмены заказа.")
+                    return redirect(request.META.get('HTTP_REFERER', '/'))
+                order.cancel_reason = cancel_reason
+            else:
+                order.cancel_reason = ''
+
             order.save()
+            messages.success(request, f"Статус заказа №{order.id} успешно обновлён.")
+        else:
+            messages.error(request, "Недопустимый статус.")
+
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
+def admin_product(request):
+    products = Product.objects.all()
+    colors = Color.objects.all()
+    sizes = Size.objects.all()
+    return render(request, 'admin_product.html', {
+        'products': products,
+        'colors': colors,
+        'sizes': sizes
+    })
+
+@login_required
+def add_product(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        price = request.POST.get('price')
+
+        # Новый цвет
+        new_color_name = request.POST.get('new_color_name')
+        new_color_hex = request.POST.get('new_color_hex')
+
+        # Новый размер
+        new_size_name = request.POST.get('new_size_name')
+
+        # Создаем продукт
+        product = Product.objects.create(
+            name=name,
+            description=description,
+            price=price
+        )
+
+        # Обработка цвета
+        color_ids = request.POST.getlist('colors')
+        if new_color_name and new_color_hex:
+            color = Color.objects.create(name=new_color_name, hex_code=new_color_hex)
+            color_ids.append(str(color.id))
+        colors = Color.objects.filter(id__in=color_ids)
+
+        # Обработка размеров
+        size_ids = request.POST.getlist('sizes')
+        if new_size_name:
+            size = Size.objects.create(name=new_size_name)
+            size_ids.append(str(size.id))
+        sizes = Size.objects.filter(id__in=size_ids)
+
+        # Создаем вариацию (одну для всех сочетаний)
+        variation = ProductVariation.objects.create(product=product)
+        variation.color.set(colors)
+        variation.size.set(sizes)
+
+        # Обработка изображений
+        images = request.FILES.getlist('images')
+        for color in colors:
+            for image in images:
+                ProductImage.objects.create(
+                    product=product,
+                    color=color,
+                    image=image
+                )
+
+        return redirect('admin_product')
+
+    return redirect('admin_product')
 
 
+@login_required
+def update_product(request, pk):
+    product = get_object_or_404(Product, pk=pk)
 
+    if request.method == 'POST':
+        product.name = request.POST.get('name')
+        product.description = request.POST.get('description')
+        product.price = request.POST.get('price')
+        product.save()
 
+        # Новый цвет
+        new_color_name = request.POST.get('new_color_name')
+        new_color_hex = request.POST.get('new_color_hex')
+        color_ids = request.POST.getlist('colors')
+        if new_color_name and new_color_hex:
+            color = Color.objects.create(name=new_color_name, hex_code=new_color_hex)
+            color_ids.append(str(color.id))
+        colors = Color.objects.filter(id__in=color_ids)
 
+        # Новый размер
+        new_size_name = request.POST.get('new_size_name')
+        size_ids = request.POST.getlist('sizes')
+        if new_size_name:
+            size = Size.objects.create(name=new_size_name)
+            size_ids.append(str(size.id))
+        sizes = Size.objects.filter(id__in=size_ids)
 
+        # Удаляем старые вариации и изображения
+        ProductVariation.objects.filter(product=product).delete()
+        ProductImage.objects.filter(product=product).delete()
 
+        # Создаем новую вариацию
+        variation = ProductVariation.objects.create(product=product)
+        variation.color.set(colors)
+        variation.size.set(sizes)
 
+        # Обработка новых изображений
+        images = request.FILES.getlist('images')
+        for color in colors:
+            for image in images:
+                ProductImage.objects.create(
+                    product=product,
+                    color=color,
+                    image=image
+                )
+
+        return redirect('admin_product')
+
+    return redirect('admin_product')
 
 
 @login_required
@@ -341,11 +474,7 @@ def update_cart_item(request, item_id):
 # детали продукта
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
-    images = ProductImage.objects.filter(product=product)
-    return render(request, 'product_detail.html', {
-        'product': product,
-        'images': images
-    })
+    return render(request, 'product_detail.html', {'product': product})
 
 # сама корзина
 @login_required

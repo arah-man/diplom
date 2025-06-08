@@ -1,24 +1,137 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Корзина{% endblock %}
+{% block title %}Управление товарами{% endblock %}
 
 {% block content %}
+<div class="container mt-5">
+  <h2>Управление товарами</h2>
 
-
-  <div class="container mt-5">
-    <h2>Управление товарами</h2>
-    <div class="text-end mb-3">
-      <a href="#" class="btn btn-success">Добавить товар</a>
-    </div>
-    <ul class="list-group">
-      {% for product in products %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        {{ product.name }} — {{ product.price }}₽
-        <a href="#" class="btn btn-sm btn-outline-primary">Редактировать</a>
-      </li>
-      {% endfor %}
-    </ul>
+  <div class="text-end mb-3">
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">Добавить товар</button>
   </div>
 
-  {% endblock %}
+  <ul class="list-group">
+    {% for product in products %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      {{ product.name }} — {{ product.price }}₽
+      <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProductModal{{ product.id }}">Редактировать</button>
+    </li>
+
+    <!-- Модальное окно редактирования -->
+    <div class="modal fade" id="editProductModal{{ product.id }}" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <form method="post" action="{% url 'update_product' product.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="modal-header">
+              <h5 class="modal-title">Редактировать товар</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="row">
+                <div class="col-md-6 mb-2">
+                  <label class="form-label">Название</label>
+                  <input type="text" name="name" value="{{ product.name }}" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label class="form-label">Цена</label>
+                  <input type="number" name="price" value="{{ product.price }}" class="form-control" required>
+                </div>
+              </div>
+              <label class="form-label">Описание</label>
+              <textarea name="description" class="form-control mb-3">{{ product.description }}</textarea>
+
+              <label class="form-label">Цвета</label>
+              <select name="colors" multiple class="form-select mb-2">
+                {% for color in colors %}
+                <option value="{{ color.id }}" {% if color in product.colors.all %}selected{% endif %}>{{ color.name }}</option>
+                {% endfor %}
+              </select>
+              <div class="input-group mb-3">
+                <input type="text" name="new_color_name" class="form-control" placeholder="Новый цвет">
+                <input type="color" name="new_color_hex" class="form-control form-control-color">
+              </div>
+
+              <label class="form-label">Размеры</label>
+              <select name="sizes" multiple class="form-select mb-2">
+                {% for size in sizes %}
+                <option value="{{ size.id }}" {% if size in product.sizes.all %}selected{% endif %}>{{ size.name }}</option>
+                {% endfor %}
+              </select>
+              <input type="text" name="new_size_name" class="form-control mb-3" placeholder="Новый размер">
+
+              <label class="form-label">Изображения (выбери, чтобы заменить)</label>
+              <input type="file" name="images" multiple class="form-control mb-3">
+              <div class="mb-2">
+                <small>Текущие изображения:</small><br>
+                {% for img in product.images.all %}
+                  <img src="{{ img.image.url }}" class="img-thumbnail me-1" width="70">
+                {% endfor %}
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </ul>
+</div>
+
+<!-- Модальное окно добавления -->
+<div class="modal fade" id="addProductModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="post" action="{% url 'add_product' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Добавить товар</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <label class="form-label">Название</label>
+              <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label">Цена</label>
+              <input type="number" name="price" class="form-control" required>
+            </div>
+          </div>
+          <label class="form-label">Описание</label>
+          <textarea name="description" class="form-control mb-3"></textarea>
+
+          <label class="form-label">Цвета</label>
+          <select name="colors" multiple class="form-select mb-2">
+            {% for color in colors %}
+            <option value="{{ color.id }}">{{ color.name }}</option>
+            {% endfor %}
+          </select>
+          <div class="input-group mb-3">
+            <input type="text" name="new_color_name" class="form-control" placeholder="Новый цвет">
+            <input type="color" name="new_color_hex" class="form-control form-control-color">
+          </div>
+
+          <label class="form-label">Размеры</label>
+          <select name="sizes" multiple class="form-select mb-2">
+            {% for size in sizes %}
+            <option value="{{ size.id }}">{{ size.name }}</option>
+            {% endfor %}
+          </select>
+          <input type="text" name="new_size_name" class="form-control mb-3" placeholder="Новый размер">
+
+          <label class="form-label">Изображения</label>
+          <input type="file" name="images" multiple class="form-control">
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Добавить товар</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

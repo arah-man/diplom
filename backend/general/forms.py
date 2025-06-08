@@ -1,5 +1,5 @@
 from django import forms
-from .models import Order, PickupPoint, Product
+from .models import Order, PickupPoint, Product, Color, Size, ProductVariation, ProductImage
 
 
 class OrderForm(forms.ModelForm):
@@ -28,3 +28,20 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = ['name', 'description', 'price']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'price': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+class ProductVariationForm(forms.Form):
+    color = forms.ModelMultipleChoiceField(
+        queryset=Color.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        label='Цвета'
+    )
+    size = forms.ModelMultipleChoiceField(
+        queryset=Size.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        label='Размеры'
+    )

@@ -15,7 +15,7 @@
             <table class="cart-table">
                 <thead>
                     <tr>
-                        <th></th> <!-- Чекбокс -->
+                        <th></th>
                         <th>Товар</th>
                         <th>Цвет</th>
                         <th>Размер</th>
@@ -61,12 +61,11 @@
                         </td>
                         <td>{{ item.total_price }} ₽</td>
                         <td>
-                            <form method="post" action="{% url 'remove_from_cart' item.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="remove-btn">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </form>
+                            <button type="button"
+                                    class="remove-btn"
+                                    onclick="removeFromCart({{ item.id }}, '{{ csrf_token }}')">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}
@@ -96,8 +95,12 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
 
+{% block scripts %}
+{{ block.super }}
 <script>
+// Пересчёт общей суммы
 document.addEventListener("DOMContentLoaded", function () {
     const checkboxes = document.querySelectorAll(".select-item");
     const totalDisplay = document.getElementById("total-price-display");
@@ -122,7 +125,23 @@ document.addEventListener("DOMContentLoaded", function () {
         cb.addEventListener("change", recalculateTotal);
     });
 
-    recalculateTotal(); // стартовый пересчёт
+    recalculateTotal();
 });
+
+// Удаление товара через POST
+function removeFromCart(itemId, csrfToken) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/remove_from_cart/${itemId}/`;
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'csrfmiddlewaretoken';
+    input.value = csrfToken;
+
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+}
 </script>
 {% endblock %}

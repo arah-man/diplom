@@ -103,6 +103,7 @@ class Order(models.Model):
         Product,
         related_name='orders'
     )
+    cancel_reason = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
         return f"Заказ #{self.id} от {self.user.username}"

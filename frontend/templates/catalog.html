@@ -7,23 +7,23 @@
 <h1 class="h1">Каталог</h1>
 
 <div class="products-container">
-  {% for image in product_images %}
+  {% for entry in product_images %}
+  {% with image=entry.image product=entry.product color=entry.color sizes=entry.sizes %}
   <div class="card-wrapper">
     <!-- Фото -->
-     <div class="image-holder">
-  <!-- Обернули только картинку ссылкой -->
-      <a href="{% url 'product_detail' image.product.id %}" class="image-link">
+    <div class="image-holder">
+      <a href="{% url 'product_detail' product.id %}" class="image-link">
         <div class="image-liquid">
-          <img src="{{ image.image.url }}" alt="{{ image.product.name }}">
+          <img src="{{ image.image.url }}" alt="{{ product.name }}">
         </div>
       </a>
 
-      <!-- Отдельно кнопка добавления в корзину -->
+      <!-- Кнопка корзины -->
       <div class="plus-overlay">
         <form method="post" action="{% url 'add_to_cart' %}" class="add-to-cart-form">
           {% csrf_token %}
-          <input type="hidden" name="product_id" value="{{ image.product.id }}">
-          <input type="hidden" name="color" value="{{ image.color.id }}">
+          <input type="hidden" name="product_id" value="{{ product.id }}">
+          <input type="hidden" name="color" value="{{ color.id }}">
           <input type="hidden" name="size" class="selected-size" value="">
           <input type="hidden" name="quantity" value="1">
           <button type="submit" class="plus-circle">
@@ -33,25 +33,20 @@
       </div>
     </div>
 
-
     <!-- Описание -->
     <div class="product-description">
-      <h5 class="product-title">{{ image.product.name }}</h5>
+      <h5 class="product-title">{{ product.name }}</h5>
       <div class="row">
-        <div class="col-xs-12 col-sm-8 category">{{ image.product.description|truncatechars:50 }}</div>
-        <div class="col-xs-12 col-sm-4 price">{{ image.product.price }}₽</div>
+        <div class="col-xs-12 col-sm-8 category">{{ product.description|truncatechars:50 }}</div>
+        <div class="col-xs-12 col-sm-4 price">{{ product.price }}₽</div>
       </div>
 
       <div class="extra-details">
         <div class="sizes-wrapper">
           <p>Размеры</p>
           <div class="size-list">
-            {% for variation in image.product.productvariation_set.all %}
-              {% if variation.color.id == image.color.id %}
-                {% for size in variation.size.all %}
-                  <button type="button" class="size-option" data-size-id="{{ size.id }}">{{ size.name }}</button>
-                {% endfor %}
-              {% endif %}
+            {% for size in sizes %}
+              <button type="button" class="size-option" data-size-id="{{ size.id }}">{{ size.name }}</button>
             {% endfor %}
           </div>
         </div>
@@ -59,13 +54,13 @@
         <div class="colors-wrapper">
           <p>Цвета</p>
           <div class="color-list">
-            {% for variation in image.product.productvariation_set.all %}
+            {% for c in entry.colors %}
               <button
                 type="button"
-                class="color-sample {% if variation.color.id == image.color.id %}selected{% endif %}"
-                style="background-color: {{ variation.color.hex_code }};"
-                data-color-id="{{ variation.color.id }}"
-                data-product-id="{{ image.product.id }}">
+                class="color-sample {% if c.id == color.id %}selected{% endif %}"
+                style="background-color: {{ c.hex_code }};"
+                data-color-id="{{ c.id }}"
+                data-product-id="{{ product.id }}">
               </button>
             {% endfor %}
           </div>
@@ -73,10 +68,11 @@
       </div>
     </div>
   </div>
+  {% endwith %}
   {% endfor %}
 </div>
 
-<!-- Модальное окно -->
+<!-- Модальное окно выбора размера -->
 <div class="modal fade" id="sizeModal" tabindex="-1" aria-labelledby="sizeModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -111,16 +107,12 @@ document.addEventListener("DOMContentLoaded", function () {
   let currentForm = null;
 
   document.body.addEventListener("click", function (e) {
-    // ✅ Клик по размеру в карточке
     if (e.target.classList.contains("size-option")) {
       const btn = e.target;
       const sizeList = btn.closest(".size-list");
-
-      // Только если клик был внутри карточки, а не в модалке
       if (sizeList) {
         sizeList.querySelectorAll(".size-option").forEach(b => b.classList.remove("selected"));
         btn.classList.add("selected");
-
         const form = btn.closest(".card-wrapper").querySelector("form.add-to-cart-form");
         if (form) {
           form.querySelector("input[name='size']").value = btn.dataset.sizeId;
@@ -128,65 +120,47 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
-    // ✅ Клик по кнопке "добавить в корзину"
     if (e.target.closest(".plus-circle")) {
       const form = e.target.closest("form.add-to-cart-form");
       const sizeInput = form.querySelector("input[name='size']");
-
-      // Если размер не выбран — открываем модалку
       if (!sizeInput.value) {
         e.preventDefault();
         currentForm = form;
-
-        // Берём доступные размеры
         const sizeButtons = form.closest(".card-wrapper").querySelectorAll(".size-option");
         modalSizes.innerHTML = "";
-
         sizeButtons.forEach(btn => {
           const clone = btn.cloneNode(true);
           clone.classList.remove("selected");
           modalSizes.appendChild(clone);
         });
-
         const bsModal = new bootstrap.Modal(sizeModal);
         bsModal.show();
       }
     }
 
-    // ✅ Клик по цвету
     if (e.target.classList.contains("color-sample")) {
       const card = e.target.closest(".card-wrapper");
       const form = card.querySelector("form.add-to-cart-form");
-
-      // Подсветка выбранного цвета
       card.querySelectorAll(".color-sample").forEach(b => b.classList.remove("selected"));
       e.target.classList.add("selected");
-
-      // Сохраняем цвет в форму
       form.querySelector("input[name='color']").value = e.target.dataset.colorId;
     }
 
-    // ✅ Выбор размера в модалке
     if (e.target.closest("#modal-sizes .size-option")) {
       modalSizes.querySelectorAll(".size-option").forEach(b => b.classList.remove("selected"));
       e.target.classList.add("selected");
     }
   });
 
-  // ✅ Подтверждение размера из модалки
   confirmBtn.addEventListener("click", function () {
     const selected = modalSizes.querySelector(".size-option.selected");
     if (!selected) return;
-
     const sizeId = selected.dataset.sizeId;
     currentForm.querySelector("input[name='size']").value = sizeId;
-
     const bsModal = bootstrap.Modal.getInstance(sizeModal);
     bsModal.hide();
-
     currentForm.submit();
   });
 });
 </script>
-
 {% endblock %}

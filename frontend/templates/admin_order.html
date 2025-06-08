@@ -33,7 +33,7 @@
             <p><strong>Пользователь:</strong> {{ order.user.username }}</p>
             <p><strong>Статус:</strong> {{ order.get_status_display }}</p>
           </div>
-          <div>
+          <div id="toggle-button-show-{{ order.id }}">
             <button class="btn btn-sm btn-outline-dark" onclick="toggleDetails({{ order.id }})">Подробнее</button>
           </div>
         </div>
@@ -42,12 +42,12 @@
       <div id="details-block-{{ order.id }}" style="display: none;">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <div>
-            <p><strong>ФИО:</strong>{{ user.last_name}} {{ user.first_name}} {{ user.third_name}}</p>
-            <p><strong>Контактные данные:</strong> {{ user.phone|default:"—" }}</p>            
+            <p><strong>ФИО:</strong>{{ user.last_name }} {{ user.first_name }} {{ user.third_name }}</p>
+            <p><strong>Контактные данные:</strong> {{ user.phone|default:"—" }}</p>
             <p><strong>Оплата:</strong> {{ order.get_type_payment_display }}</p>
             <p><strong>Пункт выдачи:</strong> {{ order.address|default:"—" }}</p>
           </div>
-          <div class="d-flex gap-2">
+          <div id="toggle-buttons-hide-{{ order.id }}" class="d-flex gap-2" style="display: none;">
             <button class="btn btn-sm btn-outline-secondary" onclick="toggleDetails({{ order.id }})">Скрыть</button>
             <button class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#editModal-{{ order.id }}">
               Изменить
@@ -88,11 +88,11 @@
       </div>
     </div>
 
-    <!-- Модальное окно для изменения статуса -->
+    <!-- Модальное окно -->
     <div class="modal fade" id="editModal-{{ order.id }}" tabindex="-1" aria-labelledby="editModalLabel-{{ order.id }}" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
-          <form method="post" action="{% url 'update_order_status' order.id %}">
+          <form method="post" action="{% url 'update_order_status' order.id %}" onsubmit="return validateCancelReason({{ order.id }});">
             {% csrf_token %}
             <div class="modal-header">
               <h5 class="modal-title" id="editModalLabel-{{ order.id }}">Изменение статуса заказа</h5>
@@ -100,11 +100,17 @@
             </div>
             <div class="modal-body">
               <label for="status-select-{{ order.id }}" class="form-label">Статус:</label>
-              <select name="status" id="status-select-{{ order.id }}" class="form-select">
+              <select name="status" id="status-select-{{ order.id }}" class="form-select" onchange="handleStatusChange({{ order.id }});">
                 {% for value, label in order.STATUS_CHOICES %}
                   <option value="{{ value }}" {% if value == order.status %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
               </select>
+
+              <div id="cancel-reason-block-{{ order.id }}" class="mt-3" style="display: none;">
+                <label for="cancel-reason-text-{{ order.id }}" class="form-label">Причина отмены:</label>
+                <textarea name="cancel_reason" id="cancel-reason-text-{{ order.id }}" class="form-control" rows="3" placeholder="Укажите причину отмены..."></textarea>
+                <div class="invalid-feedback">Пожалуйста, укажите причину отмены.</div>
+              </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
@@ -135,19 +141,59 @@
     text-align: right;
     font-weight: bold;
   }
+  .gap-2 {
+    gap: 0.5rem;
+  }
 </style>
 
 <script>
   function toggleDetails(id) {
     const summary = document.getElementById(`summary-block-${id}`);
     const details = document.getElementById(`details-block-${id}`);
-    if (summary.style.display === 'none') {
-      summary.style.display = 'block';
+    const showBtn = document.getElementById(`toggle-button-show-${id}`);
+    const hideBtns = document.getElementById(`toggle-buttons-hide-${id}`);
+
+    const isOpen = details.style.display === 'block';
+
+    if (isOpen) {
       details.style.display = 'none';
+      showBtn.style.display = 'block';
+      hideBtns.style.display = 'none';
     } else {
-      summary.style.display = 'none';
       details.style.display = 'block';
+      showBtn.style.display = 'none';
+      hideBtns.style.display = 'flex';
     }
+  }
+
+  function handleStatusChange(orderId) {
+    const select = document.getElementById(`status-select-${orderId}`);
+    const cancelBlock = document.getElementById(`cancel-reason-block-${orderId}`);
+    const cancelReason = document.getElementById(`cancel-reason-text-${orderId}`);
+
+    if (select.value === '4') {
+      cancelBlock.style.display = 'block';
+    } else {
+      cancelBlock.style.display = 'none';
+      cancelReason.classList.remove('is-invalid');
+      cancelReason.value = '';
+    }
+  }
+
+  function validateCancelReason(orderId) {
+    const select = document.getElementById(`status-select-${orderId}`);
+    const cancelReason = document.getElementById(`cancel-reason-text-${orderId}`);
+
+    if (select.value === '4') {
+      if (cancelReason.value.trim() === '') {
+        cancelReason.classList.add('is-invalid');
+        cancelReason.focus();
+        return false;
+      } else {
+        cancelReason.classList.remove('is-invalid');
+      }
+    }
+    return true;
   }
 </script>
 {% endblock %}

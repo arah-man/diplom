@@ -4,7 +4,7 @@ from django.contrib.auth import views as auth_views
 
 from general.views import index, catalog, logout_view, cart_view, add_to_cart, remove_from_cart, update_cart_item
 from general.views import product_detail, cart_detail, create_order, get_sizes, switch_color, order_success, proceed_to_order
-from general.views import profile, admin_order, admin_product, update_order_status
+from general.views import profile, admin_order, admin_product, update_order_status, add_product, update_product
 
 urlpatterns = [
     path('', index, name = 'index'),
@@ -29,6 +29,8 @@ urlpatterns = [
     path('admin_order/', admin_order, name='admin_order'),
     path('admin_product/', admin_product, name='admin_product'),
     path('update_order_status/<int:order_id>/', update_order_status, name='update_order_status'),
+    path('add_product', add_product, name='add_product'),
+    path('update_product/<int:product_id>/', update_product, name='update_product'),
 
     # path('product_card/', product_card, name='product_card'),
     # path('product_detail/', product_detail, name='product_detail'),

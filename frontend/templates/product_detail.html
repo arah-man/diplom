@@ -1,51 +1,29 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Управление товарами{% endblock %}
 
 {% block content %}
-<div class="product-detail">
-    <div class="product-images">
-        {% for image in images %}
-            <img src="{{ image.image.url }}" alt="{{ product.name }}">
-        {% endfor %}
-    </div>
-    
-    <div class="product-info">
-        <h1>{{ product.name }}</h1>
-        <p class="price">{{ product.price }}₽</p>
-        <p class="description">{{ product.description }}</p>
-        
-        <form method="post" action="{% url 'add_to_cart' %}">
-            {% csrf_token %}
-            <input type="hidden" name="product_id" value="{{ product.id }}">
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6">
+            <img src="{{ product.image.url }}" class="img-fluid rounded" alt="{{ product.name }}">
+        </div>
+        <div class="col-md-6">
+            <h1>{{ product.name }}</h1>
+            <p class="text-muted">{{ product.category }}</p>
+            <h3>{{ product.price }} ₽</h3>
+            <p>{{ product.description }}</p>
             
-            {% if product.color.all %}
-            <div class="form-group">
-                <label>Цвет:</label>
-                <select name="color" required>
-                    {% for color in product.color.all %}
-                    <option value="{{ color.id }}">{{ color.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            {% endif %}
-            
-            {% if product.size.all %}
-            <div class="form-group">
-                <label>Размер:</label>
-                <select name="size" required>
-                    {% for size in product.size.all %}
-                    <option value="{{ size.id }}">{{ size.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            {% endif %}
-            
-            <div class="form-group">
-                <label>Количество:</label>
-                <input type="number" name="quantity" value="1" min="1">
-            </div>
-            
-            <button type="submit" class="add-to-cart-btn">Добавить в корзину</button>
-        </form>
+            <form method="post" action="{% url 'add_to_cart' product.id %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="quantity" class="form-label">Количество:</label>
+                    <input type="number" id="quantity" name="quantity" class="form-control w-25" value="1" min="1">
+                </div>
+                <button type="submit" class="btn btn-primary">Добавить в корзину</button>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}
