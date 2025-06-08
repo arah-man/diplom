@@ -1,29 +1,71 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
-{% block title %}Управление товарами{% endblock %}
-
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-6">
-            <img src="{{ product.image.url }}" class="img-fluid rounded" alt="{{ product.name }}">
-        </div>
-        <div class="col-md-6">
-            <h1>{{ product.name }}</h1>
-            <p class="text-muted">{{ product.category }}</p>
-            <h3>{{ product.price }} ₽</h3>
-            <p>{{ product.description }}</p>
-            
-            <form method="post" action="{% url 'add_to_cart' product.id %}">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="quantity" class="form-label">Количество:</label>
-                    <input type="number" id="quantity" name="quantity" class="form-control w-25" value="1" min="1">
-                </div>
-                <button type="submit" class="btn btn-primary">Добавить в корзину</button>
-            </form>
-        </div>
+<div class="product-detail-container" style="max-width: 1000px; margin: auto; padding: 40px 20px; font-family: 'Segoe UI', sans-serif; color: #333;">
+  
+  <!-- Верхний блок: изображение + основная информация -->
+  <div style="display: flex; flex-wrap: wrap; gap: 40px;">
+
+    <!-- Галерея изображений -->
+    <div style="flex: 1 1 400px;">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        {% for image in images %}
+          <img src="{{ image.image.url }}" alt="{{ product.name }}" style="width: 100%; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        {% empty %}
+          <p>Изображения отсутствуют</p>
+        {% endfor %}
+      </div>
     </div>
+
+    <!-- Информация о товаре -->
+    <div style="flex: 1 1 400px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <h1 style="font-size: 32px; margin-bottom: 10px;">{{ product.name }}</h1>
+
+        <!-- Цвет -->
+        <p style="margin-bottom: 15px; font-size: 16px;">
+          <strong>Цвет:</strong>  {{ variation.color.colored_circle|safe }}
+        </p>
+
+        <!-- Описание -->
+        <p style="font-size: 15px; line-height: 1.6; color: #555;">{{ product.description }}</p>
+      </div>
+
+      <!-- Цена -->
+      <div style="margin-top: 25px;">
+        <span style="font-size: 28px; font-weight: bold;">{{ product.price }} ₽</span>
+      </div>
+
+      <!-- Форма добавления в корзину -->
+      <form method="post" action="{% url 'add_to_cart' %}" style="margin-top: 30px; display: flex; flex-direction: column; gap: 15px;">
+        {% csrf_token %}
+        
+        <!-- Размер -->
+        <div>
+          <label for="size" style="font-weight: 600;">Размер:</label><br>
+          <select name="size" id="size" required style="padding: 10px; width: 100%; border-radius: 8px; border: 1px solid #ccc; margin-top: 5px;">
+            {% for size in sizes %}
+              <option value="{{ size.id }}">{{ size.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Количество -->
+        <div>
+          <label for="quantity" style="font-weight: 600;">Количество:</label><br>
+          <input type="number" name="quantity" id="quantity" value="1" min="1"
+                 style="padding: 10px; width: 100px; border-radius: 8px; border: 1px solid #ccc; margin-top: 5px;">
+        </div>
+
+        <!-- Кнопка -->
+        <button type="submit"
+                style="padding: 14px; background-color: #1a1a1a; color: #fff; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s;">
+          🛒 Добавить в корзину
+        </button>
+      </form>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

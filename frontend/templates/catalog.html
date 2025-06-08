@@ -12,11 +12,10 @@
   <div class="card-wrapper">
     <div class="image-holder">
       <!-- Ссылка на страницу товара -->
-      <a href="{% url 'product_detail' product.id %}" class="image-link">
         <div class="image-liquid">
           <img src="{{ image.image.url }}" alt="{{ product.name }}">
         </div>
-      </a>
+      
 
       <!-- Кнопка добавления в корзину -->
       <div class="plus-overlay">
@@ -42,30 +41,33 @@
       </div>
 
       <!-- Дополнительные детали (размеры и цвета) -->
-      <div class="extra-details">
-        <div class="sizes-wrapper">
-          <p>Размеры</p>
-          <div class="size-list">
-            {% for size in sizes %}
-              <button type="button" class="size-option" data-size-id="{{ size.id }}">{{ size.name }}</button>
-            {% endfor %}
-          </div>
-        </div>
+      <a href="{% url 'product_detail' product.id color.id %}" class="image-link">
 
-        <div class="colors-wrapper">
-          <p>Цвета</p>
-          <div class="color-list">
-            {% for c in entry.colors %}
-              <button
-                type="button"
-                class="color-sample {% if c.id == color.id %}selected{% endif %}"
-                style="background-color: {{ c.hex_code }};"
-                data-color-id="{{ c.id }}"
-                data-product-id="{{ product.id }}">
-              </button>
-            {% endfor %}
+        <div class="extra-details">
+          <div class="sizes-wrapper">
+            <p>Размеры</p>
+            <div class="size-list">
+              {% for size in sizes %}
+                <button type="button" class="size-option" data-size-id="{{ size.id }}">{{ size.name }}</button>
+              {% endfor %}
+            </div>
           </div>
-        </div>
+
+          <div class="colors-wrapper">
+            <p>Цвета</p>
+            <div class="color-list">
+              {% for c in entry.colors %}
+                <button
+                  type="button"
+                  class="color-sample {% if c.id == color.id %}selected{% endif %}"
+                  style="background-color: {{ c.hex_code }};"
+                  data-color-id="{{ c.id }}"
+                  data-product-id="{{ product.id }}">
+                </button>
+              {% endfor %}
+            </div>
+          </div>
+        </a>
       </div>
     </div>
   </div>

@@ -10,7 +10,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from general.forms import OrderForm, ProductForm, ProductVariationForm
 from general.models import Product, Color, Size, ProductImage, Order, Cart, CartItem, ProductVariation, OrderItem
 
-
+# страницы
+# главная страница
 def index(request):
     # Выявление последних 6 вариаций (тип продукта + цвет)
     latest_image_ids = (
@@ -26,11 +27,7 @@ def index(request):
     context = {'products': products}
 
     return render(request, 'index.html', context)
-
-def logout_view(request):
-    logout(request)
-    return redirect('index')
-
+# каталог
 def catalog(request):
     product_images = []
 
@@ -60,83 +57,54 @@ def catalog(request):
     return render(request, 'catalog.html', {
         'product_images': product_images
     })
+# страница товара
+def product_detail(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    return render(request, 'product_detail.html', {'product': product})
+# профиль пользователя
+def profile(request):
+    orders = Order.objects.filter(user=request.user).prefetch_related(
+        'items__product', 'items__color', 'items__size'
+    ).select_related('address').order_by('-date_at')
 
-
-# корзина
-# добавление в корзину
-@require_POST
-@login_required
-def add_to_cart(request):
-    try:
-        product_id = request.POST.get('product_id')
-        color_id = request.POST.get('color')
-        size_id = request.POST.get('size')
-
-        product = get_object_or_404(Product, id=product_id)
-        color = get_object_or_404(Color, id=color_id) if color_id else None
-        size = get_object_or_404(Size, id=size_id) if size_id else None
-
-        cart, created = Cart.objects.get_or_create(user=request.user)
-
-        cart_item, created = CartItem.objects.get_or_create(
-            cart=cart,
-            product=product,
-            color=color,
-            size=size,
-            defaults={'quantity': 1}
-        )
-
-        if not created:
-            cart_item.quantity += 1
-            cart_item.save()
-
-        return JsonResponse({
-            'success': True,
-            'message': 'Товар добавлен в корзину',
-            'cart_count': cart.total_items
-
-        })
-
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=400)
-
-# получение размера
-def get_sizes(request):
-    product_id = request.GET.get('product_id')
-    color_id = request.GET.get('color_id')
-    # Здесь логика получения доступных размеров для товара и цвета
-    # Например:
-    try:
-        product_color = ProductVariation.objects.get(product_id = product_id, color_id = color_id)
-        sizes = product_color.size.all()
-        sizes_data = [{'id': size.id, 'name': size.name} for size in sizes]
-        return JsonResponse({'sizes': sizes_data})
-    except ProductVariation.DoesNotExist:
-        return JsonResponse({'sizes': []})
-
-# получение цвета
-def switch_color(request):
-    product_id = request.GET.get('product_id')
-    color_id = request.GET.get('color_id')
-
-    product = get_object_or_404(Product, id=product_id)
-    variation = product.productvariation_set.filter(color_id=color_id).first()
-
-    if not variation:
-        return HttpResponse("Цвет не найден", status=404)
-
-    image = variation.productimage_set.first
+    return render(request, 'profile.html', {
+        'orders': orders,
+    })
+# админка управления заказами
+def admin_order(request):
+    status = request.GET.get('status')
+    orders = Order.objects.all().order_by('-date_at')
+    if status:
+        orders = orders.filter(status=status)
+    return render(request, 'admin_order.html', {'orders': orders})
+# админка работа с товарами
+def admin_product(request):
+    products = Product.objects.all()
+    colors = Color.objects.all()
+    sizes = Size.objects.all()
+    return render(request, 'admin_product.html', {
+        'products': products,
+        'colors': colors,
+        'sizes': sizes
+    })
+# страница товара
+def product_detail(request, product_id, color_id):
+    product = get_object_or_404(Product, pk=product_id)
+    variation = get_object_or_404(ProductVariation, product=product, color__id=color_id)
+    images = ProductImage.objects.filter(product=product, color__id=color_id)
+    sizes = variation.size.all()
 
     context = {
-        'image': image  # предполагаем, что image содержит ссылку на product и color
+        'product': product,
+        'variation': variation,
+        'images': images,
+        'sizes': sizes,
     }
+    return render(request, 'product_detail.html', context)
 
-    return render(request, 'product_card.html', context)
 
 # корзина
+# страница корзины
 @login_required
 def cart_view(request):
     # Загружаем все элементы корзины текущего пользователя
@@ -176,8 +144,91 @@ def cart_view(request):
             'total_price': total_price
         }
     })
+# добавление товара в корзину
+@require_POST
+@login_required
+def add_to_cart(request):
+    try:
+        product_id = request.POST.get('product_id')
+        color_id = request.POST.get('color')
+        size_id = request.POST.get('size')
 
-# оформление заказа
+        product = get_object_or_404(Product, id=product_id)
+        color = get_object_or_404(Color, id=color_id) if color_id else None
+        size = get_object_or_404(Size, id=size_id) if size_id else None
+
+        cart, created = Cart.objects.get_or_create(user=request.user)
+
+        cart_item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            product=product,
+            color=color,
+            size=size,
+            defaults={'quantity': 1}
+        )
+
+        if not created:
+            cart_item.quantity += 1
+            cart_item.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Товар добавлен в корзину',
+            'cart_count': cart.total_items
+
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+# удаление товара
+@login_required
+def remove_from_cart(request, item_id):
+    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+    cart_item.delete()
+    return redirect('cart')
+
+
+# получение размера
+def get_sizes(request):
+    product_id = request.GET.get('product_id')
+    color_id = request.GET.get('color_id')
+    # Здесь логика получения доступных размеров для товара и цвета
+    # Например:
+    try:
+        product_color = ProductVariation.objects.get(product_id = product_id, color_id = color_id)
+        sizes = product_color.size.all()
+        sizes_data = [{'id': size.id, 'name': size.name} for size in sizes]
+        return JsonResponse({'sizes': sizes_data})
+    except ProductVariation.DoesNotExist:
+        return JsonResponse({'sizes': []})
+# получение цвета
+def switch_color(request):
+    product_id = request.GET.get('product_id')
+    color_id = request.GET.get('color_id')
+
+    product = get_object_or_404(Product, id=product_id)
+    variation = product.productvariation_set.filter(color_id=color_id).first()
+
+    if not variation:
+        return HttpResponse("Цвет не найден", status=404)
+
+    image = variation.productimage_set.first
+
+    context = {
+        'image': image  # предполагаем, что image содержит ссылку на product и color
+    }
+
+    return render(request, 'product_card.html', context)
+# выход
+def logout_view(request):
+    logout(request)
+    return redirect('index')
+
+
+# создание заказа
 @login_required
 def create_order(request):
     selected_items_ids = request.session.get("selected_items")
@@ -219,9 +270,7 @@ def create_order(request):
         "selected_items": selected_items,
         "total_price": total_price,
     })
-
-
-# передача чекбоксов из корзины в оформление заказа
+# выбор товаров в заказ
 def proceed_to_order(request):
     if request.method == "POST":
         selected_items = request.POST.getlist("selected_items")
@@ -231,15 +280,7 @@ def proceed_to_order(request):
         request.session["selected_items"] = selected_items
         return redirect("create_order")  # URL на create_order_view
     return redirect("cart")
-
-# изменения в корзине
-@login_required
-def remove_from_cart(request, item_id):
-    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-    cart_item.delete()
-    return redirect('cart')
-
-
+# изменение количество товара
 @login_required
 def update_cart_item(request, item_id):
     if request.method == 'POST':
@@ -260,39 +301,14 @@ def update_cart_item(request, item_id):
                 'item_total': cart_item.total_price,
                 'cart_total_price': cart.total_price
             })
-
 # успешный заказ
 def order_success(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     return render(request, "order_success.html", {"order": order})
 
-# профиль пользователя
-def profile(request):
-    orders = Order.objects.filter(user=request.user).prefetch_related(
-        'items__product', 'items__color', 'items__size'
-    ).select_related('address').order_by('-date_at')
 
-    return render(request, 'profile.html', {
-        'orders': orders,
-    })
-
-
-
-
-
-
-
-
-
-
-
-def admin_order(request):
-    status = request.GET.get('status')
-    orders = Order.objects.all().order_by('-date_at')
-    if status:
-        orders = orders.filter(status=status)
-    return render(request, 'admin_order.html', {'orders': orders})
-
+# работа в админке
+# изменение статуса заказа
 @login_required
 def update_order_status(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -318,17 +334,7 @@ def update_order_status(request, order_id):
             messages.error(request, "Недопустимый статус.")
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
-
-def admin_product(request):
-    products = Product.objects.all()
-    colors = Color.objects.all()
-    sizes = Size.objects.all()
-    return render(request, 'admin_product.html', {
-        'products': products,
-        'colors': colors,
-        'sizes': sizes
-    })
-
+# создание нового товара
 @login_required
 def add_product(request):
     if request.method == 'POST':
@@ -382,8 +388,7 @@ def add_product(request):
         return redirect('admin_product')
 
     return redirect('admin_product')
-
-
+# изменение существующего товара
 @login_required
 def update_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -435,206 +440,4 @@ def update_product(request, pk):
     return redirect('admin_product')
 
 
-@login_required
-def remove_from_cart(request, item_id):
-    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-    cart_item.delete()
-    return redirect('cart_view')
 
-
-@login_required
-def update_cart_item(request, item_id):
-    if request.method == 'POST':
-        cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-        quantity = int(request.POST.get('quantity', 1))
-
-        if quantity > 0:
-            cart_item.quantity = quantity
-            cart_item.save()
-        else:
-            cart_item.delete()
-
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            cart = cart_item.cart
-            return JsonResponse({
-                'success': True,
-                'cart_total': cart.total_items,
-                'item_total': cart_item.total_price,
-                'cart_total_price': cart.total_price
-            })
-
-    return redirect('cart_view')
-
-# детали продукта
-def product_detail(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    return render(request, 'product_detail.html', {'product': product})
-
-# сама корзина
-@login_required
-def cart_detail(request):
-    cart = Cart.objects.get_or_create(user=request.user)[0]
-    items = cart.items.select_related('product', 'color', 'size').all()
-
-    return render(request, 'cart.html', {
-        'cart': cart,
-        'items': items
-    })
-
-
-# @login_required
-# def create_order(request):
-#     if request.method == 'POST':
-#         cart = request.user.cart
-#         items = cart.items.all()
-#
-#         if not items.exists():
-#             return redirect('cart_detail')
-#
-#         # Создаем заказ
-#         order = Order.objects.create(
-#             user=request.user,
-#             address=request.POST.get('address'),
-#             type_payment=request.POST.get('payment_method'),
-#             status='0'  # Новый заказ
-#         )
-#
-#         # Добавляем товары в заказ
-#         order.product.set([item.product for item in items])
-#
-#         # Очищаем корзину
-#         items.delete()
-#
-#         return render(request, 'order_success.html', {'order': order})
-#
-#     return redirect('cart_detail')
-
-
-
-
-
-
-
-
-
-
-
-
-# def product_detail(request, product_id, color_id):
-#     product = get_object_or_404(Product, pk=product_id)
-#     color = get_object_or_404(Color, pk=color_id)
-#     images = ProductImage.objects.filter(product=product, color=color)
-#
-#     return render(request, 'product_detail.html', {
-#         'product': product,
-#         'color': color,
-#         'images': images
-#     })
-#
-#
-#
-#
-#
-# def register(request):
-#     if request.user.is_authenticated or request.user.is_superuser:
-#         return redirect('profile')
-#     # latest_question_list = Question.objects.order_by("-pub_date")[:5]
-#     # context = {"latest_question_list": latest_question_list}
-#     return render(request, "registration.html")
-#
-# def profile(request):
-#     if not request.user.is_authenticated:
-#         return redirect('index')
-#     # latest_question_list = Question.objects.order_by("-pub_date")[:5]
-#     # context = {"latest_question_list": latest_question_list}
-#     return render(request, "profile.html")
-#
-# def bascet(request):
-#     if not request.user.is_authenticated:
-#         return redirect('index')
-#     # latest_question_list = Question.objects.order_by("-pub_date")[:5]
-#     # context = {"latest_question_list": latest_question_list}
-#     return render(request, "bascet.html")
-#
-# def order_list(request):
-#     if not request.user.is_authenticated:
-#         return redirect('index')
-#     orders = Order.objects.all()
-#     context = {'orders': orders}
-#     return render(request, 'order_list.html', context)
-# def product_card(request):
-#     # latest_question_list = Question.objects.order_by("-pub_date")[:5]
-#     # context = {"latest_question_list": latest_question_list}
-#     return render(request, "product_card.html")
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-# @login_required
-# def cart_view(request):
-#     cart, created = Cart.objects.get_or_create(user=request.user)
-#     return render(request, 'cart_view.html', {'cart': cart})
-#
-#
-# @login_required
-# def add_to_cart(request):
-#     if request.method == 'POST':
-#         product_id = request.POST.get('product_id')
-#         color_id = request.POST.get('color')
-#         size_id = request.POST.get('size')
-#         quantity = int(request.POST.get('quantity', 1))
-#
-#         product = get_object_or_404(Product, id=product_id)
-#         color = get_object_or_404(Color, id=color_id) if color_id else None
-#         size = get_object_or_404(Size, id=size_id) if size_id else None
-#
-#         cart, created = Cart.objects.get_or_create(user=request.user)
-#
-#         # Ищем такой же товар в корзине
-#         cart_item = CartItem.objects.filter(
-#             cart=cart,
-#             product=product,
-#             color=color,
-#             size=size
-#         ).first()
-#
-#         if cart_item:
-#             cart_item.quantity += quantity
-#             cart_item.save()
-#         else:
-#             CartItem.objects.create(
-#                 cart=cart,
-#                 product=product,
-#                 color=color,
-#                 size=size,
-#                 quantity=quantity
-#             )
-#
-#         return redirect('cart:view')
-#
-#
-# @login_required
-# def remove_from_cart(request, item_id):
-#     cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-#     cart_item.delete()
-#     return redirect('cart:view')
-#
-#
-# @login_required
-# def update_cart_item(request, item_id):
-#     cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-#     quantity = int(request.POST.get('quantity', 1))
-#
-#     if quantity > 0:
-#         cart_item.quantity = quantity
-#         cart_item.save()
-#     else:
-#         cart_item.delete()
-#
-#     return redirect('cart:view')

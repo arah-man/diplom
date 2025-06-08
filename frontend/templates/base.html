@@ -48,7 +48,7 @@
                             <!-- Избранное -->
                             <a class="fa-regular fa-heart fa active" href="#" title="Избранное"></a>
                             <!-- Корзина -->
-                            <a href="{% url 'cart_detail' %}" class="fa-solid fa-basket-shopping fa active" title="Корзина">
+                            <a href="{% url 'cart_view' %}" class="fa-solid fa-basket-shopping fa active" title="Корзина">
                                 (<span class="cart-counter">{{ request.user.cart.total_items|default:0 }}</span>)
                             </a>
                             <!-- Профиль -->
