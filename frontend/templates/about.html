@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}О нас - LederCraft{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <h1 class="text-center mb-5 display-5 fw-bold">О нас</h1>
+
+
+  <!-- Наша философия -->
+  <div class="row align-items-center mb-5">
+    <div class="col-md-6">
+      <img src="{% static 'img/about/philosophy.jpg' %}" alt="Философия LederCraft" class="img-fluid rounded-3 shadow">
+    </div>
+    <div class="col-md-6">
+      <h2 class="h4 fw-bold mb-3">Наша философия</h2>
+      <p class="lead">
+        Мы верим, что кожаная одежда — это не просто мода. Это образ жизни.
+        Это уверенность, индивидуальность и прочность, проверенная временем.
+        В <strong>Heart of Style</strong> мы создаем вещи, которые вы будете носить с гордостью годами.
+      </p>
+    </div>
+  </div>
+
+  <!-- Как всё начиналось -->
+  <div class="row align-items-center mb-5 flex-md-row-reverse">
+    <div class="col-md-6">
+      <img src="{% static 'img/about/about-workshop.jpg' %}" alt="Как всё начиналось" class="img-fluid rounded-3 shadow">
+    </div>
+    <div class="col-md-6">
+      <h2 class="h4 fw-bold mb-3">Как всё начиналось</h2>
+      <p class="lead">
+        Наш бренд родился в 2018 году в мастерской из натуральной кожи, когда идея
+        "шить как для себя" стала нашей главной ценностью. Сначала это были
+        кастомные куртки для друзей, сегодня — тысячи довольных клиентов по всей стране.
+      </p>
+    </div>
+  </div>
+
+  <!-- Производство -->
+  <div class="row align-items-center mb-5">
+    <div class="col-md-6">
+      <img src="{% static 'img/about/about-leather.jpg' %}" alt="Производство LederCraft" class="img-fluid rounded-3 shadow">
+    </div>
+    <div class="col-md-6">
+      <h2 class="h4 fw-bold mb-3">Производство</h2>
+      <p class="lead">
+        Все изделия мы создаём вручную в России. Только первоклассная натуральная кожа, проверенные поставщики
+        и надёжные технологии. Каждая деталь проходит строгий контроль качества.
+      </p>
+    </div>
+  </div>
+
+  <!-- Наши ценности -->
+  <div class="mb-5">
+    <h2 class="h4 fw-bold mb-3">Наши ценности</h2>
+    <ul class="lead list-unstyled ps-3">
+      <li>✔ Натуральные материалы</li>
+      <li>✔ Прочное и честное производство</li>
+      <li>✔ Честные цены без посредников</li>
+      <li>✔ Поддержка ремесленного труда</li>
+      <li>✔ Уникальный стиль вне времени</li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center">
+    <h2 class="h4 fw-bold mb-3">Присоединяйтесь к Heart of Style</h2>
+    <p class="lead">Мы гордимся каждым изделием и будем рады, если кожаная вещь от нас станет вашей любимой.</p>
+    <a href="{% url 'catalog' %}" class="btn">Перейти в каталог</a>
+  </div>
+
+</div>
+{% endblock %}

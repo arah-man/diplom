@@ -1,4 +1,4 @@
-from django.contrib.auth import logout
+from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max, Prefetch
 from django.shortcuts import render, redirect, get_object_or_404
@@ -7,7 +7,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 
-from general.forms import OrderForm, ProductForm, ProductVariationForm
+from general.forms import OrderForm, ProductForm, ProductVariationForm, UserForm, UserProfileForm
 from general.models import Product, Color, Size, ProductImage, Order, Cart, CartItem, ProductVariation, OrderItem
 
 # страницы
@@ -101,6 +101,35 @@ def product_detail(request, product_id, color_id):
         'sizes': sizes,
     }
     return render(request, 'product_detail.html', context)
+# о нас
+def about(request):
+    return render(request, 'about.html')
+# регистрация
+def register(request):
+    if request.method == 'POST':
+        user_form = UserForm(request.POST)
+        profile_form = UserProfileForm(request.POST)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user = user_form.save(commit=False)
+            user.set_password(user.password)  # хеширование пароля
+            user.save()
+
+            profile = profile_form.save(commit=False)
+            profile.user = user
+            profile.save()
+
+            login(request, user)  # автоматически входить после регистрации
+            return redirect('home')  # замените на вашу страницу
+
+    else:
+        user_form = UserForm()
+        profile_form = UserProfileForm()
+
+    return render(request, 'register.html', {
+        'user_form': user_form,
+        'profile_form': profile_form
+    })
 
 
 # корзина

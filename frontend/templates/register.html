@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center">
+  <div class="contact-wrapper">
+    
+    <!-- Заголовок -->
+    <header class="login-cta">
+      <h2>Регистрация</h2>
+    </header>
+
+    <!-- Отображение ошибок -->
+    {% if user_form.errors or profile_form.errors %}
+      <div class="alert alert-danger" role="alert">
+        Пожалуйста, исправьте ошибки в форме и попробуйте снова.
+      </div>
+    {% endif %}
+
+    <!-- Форма регистрации -->
+    <form method="post" action="{% url 'register' %}">
+      {% csrf_token %}
+      
+      <!-- Поля из формы пользователя -->
+      <div class="form-row">
+        {{ user_form.username.label_tag }}
+        {{ user_form.username }}
+        {% if user_form.username.errors %}
+          <div class="text-danger">{{ user_form.username.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-row">
+        {{ user_form.password.label_tag }}
+        {{ user_form.password }}
+        {% if user_form.password.errors %}
+          <div class="text-danger">{{ user_form.password.errors }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Поля профиля -->
+      <div class="form-row">
+        {{ profile_form.first_name.label_tag }}
+        {{ profile_form.first_name }}
+        {% if profile_form.first_name.errors %}
+          <div class="text-danger">{{ profile_form.first_name.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-row">
+        {{ profile_form.second_name.label_tag }}
+        {{ profile_form.second_name }}
+        {% if profile_form.second_name.errors %}
+          <div class="text-danger">{{ profile_form.second_name.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-row">
+        {{ profile_form.third_name.label_tag }}
+        {{ profile_form.third_name }}
+        {% if profile_form.third_name.errors %}
+          <div class="text-danger">{{ profile_form.third_name.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-row">
+        {{ profile_form.phone.label_tag }}
+        {{ profile_form.phone }}
+        {% if profile_form.phone.errors %}
+          <div class="text-danger">{{ profile_form.phone.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-row">
+        {{ profile_form.email.label_tag }}
+        {{ profile_form.email }}
+        {% if profile_form.email.errors %}
+          <div class="text-danger">{{ profile_form.email.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-row">
+        {{ profile_form.date_birth.label_tag }}
+        {{ profile_form.date_birth }}
+        {% if profile_form.date_birth.errors %}
+          <div class="text-danger">{{ profile_form.date_birth.errors }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Кнопка отправки -->
+      <div class="form-row">
+        <button type="submit" class="btn">Зарегистрироваться</button>
+      </div>
+
+      <!-- Кнопка входа -->
+      <div class="form-row">
+        <a href="{% url 'login' %}" class="btn">Уже есть аккаунт? Войти</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

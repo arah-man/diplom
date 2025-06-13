@@ -2,8 +2,8 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 
 from general.views import index, catalog, logout_view, cart_view, add_to_cart, remove_from_cart, update_cart_item
-from general.views import product_detail, create_order, get_sizes, switch_color, order_success, proceed_to_order
-from general.views import profile, admin_order, admin_product, update_order_status, add_product, update_product, product_detail
+from general.views import product_detail, create_order, get_sizes, switch_color, order_success, proceed_to_order, register
+from general.views import profile, admin_order, admin_product, update_order_status, add_product, update_product, product_detail, about
 
 urlpatterns = [
     path('', index, name = 'index'),
@@ -13,6 +13,8 @@ urlpatterns = [
     path('admin_order/', admin_order, name='admin_order'),
     path('admin_product/', admin_product, name='admin_product'),
     path('product_detail/<int:product_id>/<int:color_id>/', product_detail, name='product_detail'),
+    path('about/', about, name='about'),
+    path('register/', register, name='register'),
 
     path("accounts/login/", auth_views.LoginView.as_view(template_name="login.html"), name='login'),
     path('logout/', logout_view, name='logout'),
