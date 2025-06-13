@@ -120,7 +120,7 @@ def register(request):
             profile.save()
 
             login(request, user)  # автоматически входить после регистрации
-            return redirect('home')  # замените на вашу страницу
+            return redirect('profile') 
 
     else:
         user_form = UserForm()

@@ -21,7 +21,7 @@
       </select>
     </div>
     <div class="col-md-auto">
-      <button type="submit" class="btn btn-outline-dark">Применить фильтр</button>
+      <button type="submit" class="btn">Применить фильтр</button>
     </div>
   </form>
 
@@ -37,7 +37,7 @@
             <p><strong>Статус:</strong> {{ order.get_status_display }}</p>
           </div>
           <div id="toggle-button-show-{{ order.id }}">
-            <button class="btn btn-sm btn-outline-dark" onclick="toggleDetails({{ order.id }})">Подробнее</button>
+            <button class="btn" onclick="toggleDetails({{ order.id }})">Подробнее</button>
           </div>
         </div>
       </div>
@@ -52,8 +52,8 @@
             <p><strong>Пункт выдачи:</strong> {{ order.address|default:"—" }}</p>
           </div>
           <div id="toggle-buttons-hide-{{ order.id }}" class="d-flex gap-2" style="display: none;">
-            <button class="btn btn-sm btn-outline-secondary" onclick="toggleDetails({{ order.id }})">Скрыть</button>
-            <button class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#editModal-{{ order.id }}">Изменить</button>
+            <button class="btn" onclick="toggleDetails({{ order.id }})">Скрыть</button>
+            <button class="btn" data-bs-toggle="modal" data-bs-target="#editModal-{{ order.id }}">Изменить</button>
           </div>
         </div>
 
@@ -118,8 +118,8 @@
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-              <button type="submit" class="btn btn-dark">Сохранить</button>
+              <button type="button" class="btn" data-bs-dismiss="modal">Отменить</button>
+              <button type="submit" class="btn">Сохранить</button>
             </div>
           </form>
         </div>
