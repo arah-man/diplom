@@ -85,6 +85,7 @@
       </div>
       <div class="modal-body">
         <div id="modal-sizes" class="size-options"></div>
+        <div id="size-error-message" style="color: red; margin-top: 10px; display: none;">Пожалуйста, выберите размер.</div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn" id="confirmSize">Добавить в корзину</button>
@@ -174,6 +175,7 @@ document.addEventListener("DOMContentLoaded", function () {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'X-CSRFToken': csrf,
+            'X-Requested-With': 'XMLHttpRequest'
           },
           body: new URLSearchParams({
             product_id,
@@ -216,7 +218,12 @@ document.addEventListener("DOMContentLoaded", function () {
   // Подтверждение выбора размера в модальном окне
   confirmBtn.addEventListener("click", function () {
     const selected = modalSizes.querySelector(".size-option.selected");
-    if (!selected) return;
+    if (!selected) {
+      document.getElementById("size-error-message").style.display = "block";
+      return;
+    } else {
+      document.getElementById("size-error-message").style.display = "none";
+    }
     const sizeId = selected.dataset.sizeId;
     // Устанавливаем выбранный размер в форме
     currentForm.querySelector("input[name='size']").value = sizeId;

@@ -13,6 +13,9 @@ from general.models import Product, Color, Size, ProductImage, Order, Cart, Cart
 # страницы
 # главная страница
 def index(request):
+    if request.user.is_superuser:
+        return redirect('admin_order')
+
     # Выявление последних 6 вариаций (тип продукта + цвет)
     latest_image_ids = (
         ProductImage.objects
@@ -29,6 +32,9 @@ def index(request):
     return render(request, 'index.html', context)
 # каталог
 def catalog(request):
+    if request.user.is_superuser:
+        return redirect('admin_order')
+
     product_images = []
 
     images = ProductImage.objects.select_related('product', 'color')
@@ -59,10 +65,19 @@ def catalog(request):
     })
 # страница товара
 def product_detail(request, pk):
+    if request.user.is_superuser:
+        return redirect('admin_order')
+
     product = get_object_or_404(Product, pk=pk)
     return render(request, 'product_detail.html', {'product': product})
 # профиль пользователя
 def profile(request):
+    if request.user.is_superuser:
+        return redirect('admin_order')
+
+    if not request.user.is_authenticated:
+        return redirect('index')
+
     orders = Order.objects.filter(user=request.user).prefetch_related(
         'items__product', 'items__color', 'items__size'
     ).select_related('address').order_by('-date_at')
@@ -72,6 +87,9 @@ def profile(request):
     })
 # админка управления заказами
 def admin_order(request):
+    if request.user.is_authenticated and not request.user.is_superuser:
+        return redirect('index')
+
     status = request.GET.get('status')
     orders = Order.objects.all().order_by('-date_at')
     if status:
@@ -79,6 +97,9 @@ def admin_order(request):
     return render(request, 'admin_order.html', {'orders': orders})
 # админка работа с товарами
 def admin_product(request):
+    if request.user.is_authenticated and not request.user.is_superuser:
+        return redirect('index')
+
     products = Product.objects.all()
     colors = Color.objects.all()
     sizes = Size.objects.all()
@@ -106,6 +127,9 @@ def about(request):
     return render(request, 'about.html')
 # регистрация
 def register(request):
+    if request.user.is_authenticated:
+        return redirect('index')
+
     if request.method == 'POST':
         user_form = UserForm(request.POST)
         profile_form = UserProfileForm(request.POST)
@@ -120,7 +144,7 @@ def register(request):
             profile.save()
 
             login(request, user)  # автоматически входить после регистрации
-            return redirect('profile') 
+            return redirect('profile')
 
     else:
         user_form = UserForm()
@@ -135,7 +159,13 @@ def register(request):
 # корзина
 # страница корзины
 @login_required
-def cart_view(request):
+def cart(request):
+    if request.user.is_superuser:
+        return redirect('admin_order')
+
+    if not request.user.is_authenticated:
+        return redirect('index')
+
     # Загружаем все элементы корзины текущего пользователя
     items = CartItem.objects.filter(cart__user=request.user).select_related('product', 'color', 'size')
 
@@ -177,10 +207,17 @@ def cart_view(request):
 @require_POST
 @login_required
 def add_to_cart(request):
+    if request.user.is_superuser:
+        return redirect('admin_order')
+
+    if not request.user.is_authenticated:
+        return redirect('index')
+
     try:
         product_id = request.POST.get('product_id')
         color_id = request.POST.get('color')
         size_id = request.POST.get('size')
+        quantity = int(request.POST.get('quantity', 1))
 
         product = get_object_or_404(Product, id=product_id)
         color = get_object_or_404(Color, id=color_id) if color_id else None
@@ -193,28 +230,34 @@ def add_to_cart(request):
             product=product,
             color=color,
             size=size,
-            defaults={'quantity': 1}
+            defaults={'quantity': quantity}
         )
 
         if not created:
-            cart_item.quantity += 1
+            cart_item.quantity += quantity
             cart_item.save()
 
-        return JsonResponse({
-            'success': True,
-            'message': 'Товар добавлен в корзину',
-            'cart_count': cart.total_items
-
-        })
+        # Определяем, был ли запрос AJAX (fetch отправляет header X-Requested-With)
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            cart_count = CartItem.objects.filter(cart=cart).count()
+            return JsonResponse({'success': True, 'cart_count': cart_count})
+        else:
+            return redirect(request.META.get('HTTP_REFERER', 'home'))
 
     except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=400)
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        else:
+            raise
 # удаление товара
 @login_required
 def remove_from_cart(request, item_id):
+    if request.user.is_superuser:
+        return redirect('admin_order')
+
+    if not request.user.is_authenticated:
+        return redirect('index')
+
     cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
     cart_item.delete()
     return redirect('cart')
@@ -260,6 +303,12 @@ def logout_view(request):
 # создание заказа
 @login_required
 def create_order(request):
+    if request.user.is_superuser:
+        return redirect('admin_order')
+
+    if not request.user.is_authenticated:
+        return redirect('index')
+
     selected_items_ids = request.session.get("selected_items")
 
     if not selected_items_ids:
@@ -301,6 +350,12 @@ def create_order(request):
     })
 # выбор товаров в заказ
 def proceed_to_order(request):
+    if request.user.is_superuser:
+        return redirect('admin_order')
+
+    if not request.user.is_authenticated:
+        return redirect('index')
+
     if request.method == "POST":
         selected_items = request.POST.getlist("selected_items")
         if not selected_items:
@@ -312,6 +367,12 @@ def proceed_to_order(request):
 # изменение количество товара
 @login_required
 def update_cart_item(request, item_id):
+    if request.user.is_superuser:
+        return redirect('admin_order')
+
+    if not request.user.is_authenticated:
+        return redirect('index')
+
     if request.method == 'POST':
         cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
         quantity = int(request.POST.get('quantity', 1))
@@ -332,6 +393,12 @@ def update_cart_item(request, item_id):
             })
 # успешный заказ
 def order_success(request, order_id):
+    if request.user.is_superuser:
+        return redirect('admin_order')
+
+    if not request.user.is_authenticated:
+        return redirect('index')
+
     order = get_object_or_404(Order, id=order_id, user=request.user)
     return render(request, "order_success.html", {"order": order})
 
@@ -340,6 +407,9 @@ def order_success(request, order_id):
 # изменение статуса заказа
 @login_required
 def update_order_status(request, order_id):
+    if request.user.is_authenticated and not request.user.is_superuser:
+        return redirect('index')
+
     order = get_object_or_404(Order, id=order_id)
 
     if request.method == 'POST':
@@ -366,6 +436,9 @@ def update_order_status(request, order_id):
 # создание нового товара
 @login_required
 def add_product(request):
+    if request.user.is_authenticated and not request.user.is_superuser:
+        return redirect('index')
+
     if request.method == 'POST':
         name = request.POST.get('name')
         description = request.POST.get('description')
@@ -420,6 +493,9 @@ def add_product(request):
 # изменение существующего товара
 @login_required
 def update_product(request, pk):
+    if request.user.is_authenticated and not request.user.is_superuser:
+        return redirect('index')
+
     product = get_object_or_404(Product, pk=pk)
 
     if request.method == 'POST':
@@ -467,6 +543,4 @@ def update_product(request, pk):
         return redirect('admin_product')
 
     return redirect('admin_product')
-
-
 

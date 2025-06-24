@@ -40,7 +40,14 @@
       <!-- Форма добавления в корзину -->
       <form method="post" action="{% url 'add_to_cart' %}" style="margin-top: 30px; display: flex; flex-direction: column; gap: 15px;">
         {% csrf_token %}
-        
+
+        <!-- Добавить скрытое поле с ID вариации или продукта -->
+        <input type="hidden" name="product_id" value="{{ product.id }}">
+        <input type="hidden" name="color" value="{{ variation.color.id }}">
+
+        <!-- или если вы работаете с конкретной вариацией -->
+        <!-- <input type="hidden" name="variation_id" value="{{ variation.id }}"> -->
+
         <!-- Размер -->
         <div>
           <label for="size" style="font-weight: 600;">Размер:</label><br>
@@ -55,7 +62,7 @@
         <div>
           <label for="quantity" style="font-weight: 600;">Количество:</label><br>
           <input type="number" name="quantity" id="quantity" value="1" min="1"
-                 style="padding: 10px; width: 100px; border-radius: 8px; border: 1px solid #ccc; margin-top: 5px;">
+                style="padding: 10px; width: 100px; border-radius: 8px; border: 1px solid #ccc; margin-top: 5px;">
         </div>
 
         <!-- Кнопка -->
@@ -64,6 +71,7 @@
           🛒 Добавить в корзину
         </button>
       </form>
+
     </div>
   </div>
 

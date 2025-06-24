@@ -1,8 +1,8 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 
-from general.views import index, catalog, logout_view, cart_view, add_to_cart, remove_from_cart, update_cart_item
-from general.views import product_detail, create_order, get_sizes, switch_color, order_success, proceed_to_order, register
+from general.views import index, catalog, logout_view, cart, add_to_cart, remove_from_cart, update_cart_item
+from general.views import create_order, get_sizes, switch_color, order_success, proceed_to_order, register
 from general.views import profile, admin_order, admin_product, update_order_status, add_product, update_product, product_detail, about
 
 urlpatterns = [
@@ -21,7 +21,7 @@ urlpatterns = [
     path('get_sizes/', get_sizes, name='get_sizes'),
     path('switch_color/', switch_color, name='switch_color'),
 
-    path('cart/', cart_view, name='cart_view'),
+    path('cart/', cart, name='cart'),
     path('add_to_cart/', add_to_cart, name='add_to_cart'),
     path('remove_from_cart/<int:item_id>/', remove_from_cart, name='remove_from_cart'),
 
