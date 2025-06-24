@@ -8,7 +8,9 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 
 from general.forms import OrderForm, ProductForm, ProductVariationForm, UserForm, UserProfileForm
-from general.models import Product, Color, Size, ProductImage, Order, Cart, CartItem, ProductVariation, OrderItem
+from general.models import Product, Color, Size, ProductImage, Order, Cart, CartItem, ProductVariation, OrderItem, \
+    UserProfile
+
 
 # страницы
 # главная страница
@@ -78,12 +80,15 @@ def profile(request):
     if not request.user.is_authenticated:
         return redirect('index')
 
+    userprofile = get_object_or_404(UserProfile, user=request.user)
+
     orders = Order.objects.filter(user=request.user).prefetch_related(
         'items__product', 'items__color', 'items__size'
     ).select_related('address').order_by('-date_at')
 
     return render(request, 'profile.html', {
         'orders': orders,
+        'userprofile': userprofile,
     })
 # админка управления заказами
 def admin_order(request):

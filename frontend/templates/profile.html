@@ -14,16 +14,16 @@
     <summary>👤 Личная информация</summary>  <!-- Заголовок секции с иконкой -->
     <div class="user-info-content">
       <!-- Персональные данные пользователя -->
-      <p><strong>Имя:</strong> {{ user.first_name }}</p>
-      <p><strong>Фамилия:</strong> {{ user.last_name }}</p>
+      <p><strong>Имя:</strong> {{ userprofile.first_name }}</p>
+      <p><strong>Фамилия:</strong> {{ userprofile.second_name }}</p>
       <!-- Отчество с обработкой случая, когда оно не указано -->
-      <p><strong>Отчество:</strong> {{ user.third_name|default:"—" }}</p>
+      <p><strong>Отчество:</strong> {{ userprofile.third_name|default:"—" }}</p>
       <!-- Телефон с обработкой случая, когда он не указан -->
-      <p><strong>Телефон:</strong> {{ user.phone|default:"—" }}</p>
+      <p><strong>Телефон:</strong> {{ userprofile.phone|default:"—" }}</p>
       <!-- Email пользователя (обязательное поле) -->
-      <p><strong>Почта:</strong> {{ user.email }}</p>
+      {% if userprofile.email %}<p><strong>Почта:</strong> {{ userprofile.email }}</p> {%endif%}
       <!-- Дата рождения в формате день.месяц.год -->
-      <p><strong>День рождения:</strong> {{ user.birth_date|date:"d.m.Y" }}</p>
+      <p><strong>День рождения:</strong> {{ userprofile.date_birth|date:"d.m.Y" }}</p>
     </div>
   </details>
 
